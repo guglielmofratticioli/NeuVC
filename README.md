@@ -1,2 +1,2 @@
 # NeuVC
-Neual based vst plugin for VoiceConversion 
+Neural based vst plugin for VoiceConversion 
