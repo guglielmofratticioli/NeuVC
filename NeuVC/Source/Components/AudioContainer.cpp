@@ -1,0 +1,167 @@
+
+
+#include "AudioContainer.h"
+
+AudioContainer::AudioContainer(NeuVCAudioProcessor* processor)
+    : mProcessor(processor)
+    , mAudioRegion(processor, mNumPixelsPerSecond)
+{
+    addAndMakeVisible(mAudioRegion);
+    mProcessor->getSourceAudioManager()->getAudioThumbnail()->addChangeListener(this);
+    //addMouseListener(this, true);
+}
+
+AudioContainer::~AudioContainer()
+{
+    mProcessor->getSourceAudioManager()->getAudioThumbnail()->removeChangeListener(this);
+}
+
+void AudioContainer::resized()
+{
+    mAudioRegion.setBounds(0, 0, getWidth(), mAudioRegionHeight);
+}
+
+void AudioContainer::paint(Graphics& g)
+{
+}
+
+bool AudioContainer::isInterestedInFileDrag(const StringArray& files)
+{
+    return mProcessor->getState() == EmptyAudioAndMidiRegions || mProcessor->getState() == PopulatedAudioAndMidiRegions;
+}
+
+void AudioContainer::filesDropped(const StringArray& files, int x, int y)
+{
+    ignoreUnused(x);
+    ignoreUnused(y);
+    mAudioRegion.setIsFileOver(false);
+
+    if (files[0].endsWith(".wav") || files[0].endsWith(".aiff") || files[0].endsWith(".flac")
+        || files[0].endsWith(".mp3") || files[0].endsWith(".ogg")) {
+        bool success = mProcessor->getSourceAudioManager()->onFileDrop(files[0]);
+
+        if (success) {
+            resizeAccordingToNumSamplesAvailable();
+        }
+
+        repaint();
+    } else {
+        juce::NativeMessageBox::showMessageBoxAsync(
+            juce::MessageBoxIconType::NoIcon,
+            "Could not load the file.",
+            "Check your file format (Accepted formats: .wav, .aiff, .flac, .mp3, .ogg).");
+    }
+}
+
+void AudioContainer::fileDragEnter(const StringArray& files, int x, int y)
+{
+    if (files[0].endsWith(".wav") || files[0].endsWith(".aiff") || files[0].endsWith(".flac")
+        || files[0].endsWith(".mp3")) {
+        mAudioRegion.setIsFileOver(true);
+    }
+
+    mAudioRegion.repaint();
+}
+
+void AudioContainer::fileDragExit(const StringArray& files)
+{
+    mAudioRegion.setIsFileOver(false);
+    mAudioRegion.repaint();
+}
+
+void AudioContainer::setBaseWidth(int inWidth)
+{
+    mBaseWidth = inWidth;
+}
+
+
+void AudioContainer::resizeAccordingToNumSamplesAvailable()
+{
+    int num_samples_available = mProcessor->getSourceAudioManager()->getNumSamplesDownAcquired();
+
+    int thumbnail_width =
+        static_cast<int>(std::round((num_samples_available * mNumPixelsPerSecond) / 48000));
+
+    int new_width = std::max(mBaseWidth, thumbnail_width);
+
+    mAudioRegion.setThumbnailWidth(thumbnail_width);
+
+    if (new_width != getWidth()) {
+        setSize(new_width, getHeight());
+    }
+}
+
+void AudioContainer::setViewportPtr(juce::Viewport* inViewportPtr)
+{
+    mViewportPtr = inViewportPtr;
+}
+
+void AudioContainer::changeListenerCallback(juce::ChangeBroadcaster* source)
+{
+    if (source == mProcessor->getSourceAudioManager()->getAudioThumbnail()) {
+        resizeAccordingToNumSamplesAvailable();
+
+        if (mProcessor->getState() == Recording) {
+            if (mViewportPtr)
+                mViewportPtr->setViewPositionProportionately(1.0f, 0.0f);
+            else
+                jassertfalse;
+        }
+
+        mAudioRegion.repaint();
+    }
+}
+
+void AudioContainer::setCenterView(bool inShouldCenterView)
+{
+    //mShouldCenterView = inShouldCenterView;
+}
+
+AudioRegion* AudioContainer::getAudioRegion()
+{
+    return &mAudioRegion;
+}
+
+
+void AudioContainer::timerCallback()
+{
+    if (mShouldCenterView && mProcessor->getState() == PopulatedAudioAndMidiRegions
+        && mProcessor->getPlayer()->isPlaying()) {
+        _centerViewOnPlayhead();
+    }
+}
+
+void AudioContainer::_centerViewOnPlayhead()
+{
+    if (mProcessor->getState() == PopulatedAudioAndMidiRegions) {
+        double playhead_position =
+            Playhead::computePlayheadPositionPixel(mProcessor->getPlayer()->getPlayheadPositionSeconds(),
+                                                   mProcessor->getSourceAudioManager()->getAudioSampleDuration(),
+                                                   mNumPixelsPerSecond,
+                                                   mAudioRegion.getWidth());
+
+        int full_width = mAudioRegion.getWidth();
+        int visible_width = mViewportPtr->getWidth();
+        int half_visible_width = visible_width / 2;
+
+        auto pixel_offset = (int) std::round(
+            std::max(0.0, std::min(playhead_position, (double) full_width) - (double) half_visible_width));
+        auto prev_pixel_offset = mViewportPtr->getViewPositionX();
+
+        if (pixel_offset != prev_pixel_offset)
+            mViewportPtr->setViewPosition(pixel_offset, 0);
+    }
+}
+
+/*
+ void AudioContainer::mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel)
+ {
+ // Adjust your parameter value here based on the mouse wheel movement
+ // For example, you could increment/decrement a variable representing your parameter value
+ // or call a method to adjust your parameter value accordingly.
+ // For simplicity, let's just print the mouse wheel movement for demonstration purposes.
+ //mNumPixelsPerSecond = abs( mNumPixelsPerSecond + 10 * wheel.deltaY);
+ //mAudioRegion.setPixPerSeconds(mNumPixelsPerSecond);
+ //mAudioRegion.repaint();
+ }
+ */
