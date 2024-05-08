@@ -12,7 +12,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum OS X deployment version" FORCE)
 
 option(UniversalBinary "Build universal binary for mac" OFF)
-option(RTNeural_Release "When CMAKE_BUILD_TYPE=Debug, overwrite it to Release for RTNeural only" OFF)
+#option(RTNeural_Release "When CMAKE_BUILD_TYPE=Debug, overwrite it to Release for RTNeural only" OFF)
 
 if (UniversalBinary)
     set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE INTERNAL "")
@@ -23,7 +23,7 @@ endif ()
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 add_subdirectory(ThirdParty/JUCE)
-add_subdirectory(ThirdParty/RTNeural)
+#add_subdirectory(ThirdParty/RTNeural)
 
 set(BaseTargetName NeuVC)
 
@@ -94,13 +94,13 @@ juce_add_binary_data(bin_data SOURCES ${RESOURCES_FILES})
 
 # add_library(BasicPitchCNN STATIC ${CMAKE_CURRENT_LIST_DIR}/Lib/Model/BasicPitchCNN.cpp)
 # target_include_directories(BasicPitchCNN PRIVATE ${CMAKE_CURRENT_LIST_DIR}/ThirdParty/RTNeural)
-if ((CMAKE_BUILD_TYPE STREQUAL "Debug") AND RTNeural_Release)
-    if (MSVC)
+#if ((CMAKE_BUILD_TYPE STREQUAL "Debug") AND RTNeural_Release)
+#    if (MSVC)
 #        target_compile_options(BasicPitchCNN PUBLIC /O2) # or maybe /Ox
-    else () # clang or gcc
+#    else () # clang or gcc
 #        target_compile_options(BasicPitchCNN PUBLIC -O3) # or maybe -Ofast
-    endif ()
-endif ()
+#    endif ()
+#endif ()
 #target_link_libraries(BasicPitchCNN PUBLIC RTNeural bin_data)
 
 # target_include_directories(${BaseTargetName} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/ONNXRuntime/${ONNXRUNTIME_DIRNAME}/include)
