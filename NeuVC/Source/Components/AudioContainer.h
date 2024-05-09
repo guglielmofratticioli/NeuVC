@@ -60,7 +60,7 @@ private:
     juce::Viewport* mViewportPtr = nullptr;
     //juce::VBlankAttachment mVBlankAttachment;
 
-    bool mShouldCenterView = true;
+    bool mShouldCenterView = false;
 
     int mBaseWidth = 0;
 

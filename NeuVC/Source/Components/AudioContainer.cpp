@@ -114,7 +114,7 @@ void AudioContainer::changeListenerCallback(juce::ChangeBroadcaster* source)
 
 void AudioContainer::setCenterView(bool inShouldCenterView)
 {
-    //mShouldCenterView = inShouldCenterView;
+    mShouldCenterView = inShouldCenterView;
 }
 
 AudioRegion* AudioContainer::getAudioRegion()

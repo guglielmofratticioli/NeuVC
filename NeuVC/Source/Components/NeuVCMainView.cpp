@@ -84,7 +84,7 @@ NeuVCMainView::NeuVCMainView(NeuVCAudioProcessor& processor)
 
     addAndMakeVisible(*mPlayPauseButton);
     
-    /*
+    
     mCenterButton = std::make_unique<DrawableButton>("PlayPauseButton", DrawableButton::ButtonStyle::ImageRaw);
     mCenterButton->setClickingTogglesState(true);
     mCenterButton->setColour(DrawableButton::ColourIds::backgroundColourId, Colours::transparentBlack);
@@ -106,7 +106,7 @@ NeuVCMainView::NeuVCMainView(NeuVCAudioProcessor& processor)
     };
 
     addAndMakeVisible(*mCenterButton);
-    */
+    
 
     mMuteButton = std::make_unique<juce::TextButton>("MuteButton");
     mMuteButton->setButtonText("");
@@ -120,7 +120,20 @@ NeuVCMainView::NeuVCMainView(NeuVCAudioProcessor& processor)
     mMuteButtonAttachment =
         std::make_unique<AudioProcessorValueTreeState::ButtonAttachment>(mProcessor.mTree, "MUTE", *mMuteButton);
     addAndMakeVisible(*mMuteButton);
-
+    
+    mModelChooserButton = std::make_unique<juce::TextButton>("ModelChooser");
+    mModelChooserButton->setClickingTogglesState(false);
+    mModelChooserButton->setButtonText(modelPath);
+    mModelChooserButton->setColour(juce::TextButton::ColourIds::textColourOnId, Colour(177,55,217));
+    mModelChooserButton->setColour(juce::TextButton::ColourIds::buttonColourId, Colour::fromRGBA(0, 0, 0, 0));
+    mModelChooserButton->setColour(juce::TextButton::ColourIds::buttonOnColourId, Colour::fromRGBA(0, 0, 0, 0));
+    mModelChooserButton->setLookAndFeel(&modelChooseLNF);
+    mModelChooserButton->onClick = [this]() {
+        modelChoose();
+    };
+    
+    addAndMakeVisible(*mModelChooserButton);
+    
     addAndMakeVisible(mVisualizationPanel);
 
     startTimerHz(60);
@@ -131,18 +144,18 @@ NeuVCMainView::NeuVCMainView(NeuVCAudioProcessor& processor)
 NeuVCMainView::~NeuVCMainView()
 {
     juce::LookAndFeel::setDefaultLookAndFeel(nullptr);
+    mModelChooserButton->setLookAndFeel(nullptr);
 }
 
 void NeuVCMainView::resized()
 {
     mRecordButton->setBounds(0, 115, 35, 35);
-    mClearButton->setBounds(52, 115, 35, 35);
-    mBackButton->setBounds(145, 115, 35, 35);
-    mPlayPauseButton->setBounds(197, 115, 35, 35);
-    //mCenterButton->setBounds(786, 43, 35, 35);
-
-    mMuteButton->setBounds(239, 115, 35, 35);
-
+    mClearButton->setBounds(40, 115, 35, 35);
+    mCenterButton->setBounds(80, 115, 35, 35);
+    mBackButton->setBounds(120, 115, 35, 35);
+    mPlayPauseButton->setBounds(160, 115, 35, 35);
+    mMuteButton->setBounds(200, 115, 35, 35);
+    mModelChooserButton->setBounds(400, 115, 400, 35);
     mVisualizationPanel.setBounds(0, 0, 800, 115);
 }
 
@@ -185,6 +198,23 @@ void NeuVCMainView::timerCallback()
     mVisualizationPanel.getAudioContainer().timerCallback();
 }
 
+void NeuVCMainView::modelChoose()
+{
+    mFileChooser = std::make_shared<juce::FileChooser>(
+        "Select Model File", juce::File {}, "*.pth;", true, false, this);
+
+    mFileChooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+                              [this](const juce::FileChooser& fc) {
+                                  if (fc.getResults().isEmpty())
+                                      return;
+                                  //auto* parent = dynamic_cast<AudioContainer*>(getParentComponent());
+                                  //if (parent) {
+                                      //parent->filesDropped(StringArray(fc.getResult().getFullPathName()), 1, 1);
+                                  //}
+                                  modelPath = String(fc.getResult().getFullPathName());
+                                  mModelChooserButton->setButtonText(modelPath);
+                              });
+}
 
 void NeuVCMainView::updateEnablements()
 {
@@ -196,26 +226,26 @@ void NeuVCMainView::updateEnablements()
         mClearButton->setEnabled(false);
         mPlayPauseButton->setEnabled(false);
         mBackButton->setEnabled(false);
-        //mCenterButton->setEnabled(false);
+        mCenterButton->setEnabled(false);
     } else if (current_state == Recording) {
         mRecordButton->setEnabled(true);
         mClearButton->setEnabled(false);
         mPlayPauseButton->setEnabled(false);
         mBackButton->setEnabled(false);
-        //mCenterButton->setEnabled(false);
+        mCenterButton->setEnabled(false);
     } else if (current_state == Processing) {
         mRecordButton->setEnabled(false);
         // TODO: activate clear button to be able to cancel processing.
         mClearButton->setEnabled(false);
         mPlayPauseButton->setEnabled(false);
         mBackButton->setEnabled(false);
-        //mCenterButton->setEnabled(false);
+        mCenterButton->setEnabled(false);
     } else if (current_state == PopulatedAudioAndMidiRegions) {
         mRecordButton->setEnabled(false);
         mClearButton->setEnabled(true);
         mPlayPauseButton->setEnabled(true);
         mBackButton->setEnabled(true);
-        //mCenterButton->setEnabled(true);
+        mCenterButton->setEnabled(true);
         mVisualizationPanel.setMidiFileDragComponentVisible();
     }
 
