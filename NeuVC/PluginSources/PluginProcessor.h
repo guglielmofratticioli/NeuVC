@@ -68,6 +68,9 @@ public:
     SourceAudioManager* getSourceAudioManager();
 
     Player* getPlayer();
+    
+    juce::String getModelPath() const { return mModelPath; };
+    void setModelPath(juce::String path) { mModelPath = path; };
 
 private:
     void _runModel(); // Add to TranscriptionManager
@@ -83,6 +86,8 @@ private:
     std::atomic<double> mCurrentTempo = -1.0;
     std::atomic<int> mCurrentTimeSignatureNum = -1;
     std::atomic<int> mCurrentTimeSignatureDenom = -1;
+    
+    juce::String mModelPath = "select RVC model file path ->";
 
     double mMidiFileTempo = 120.0;
 

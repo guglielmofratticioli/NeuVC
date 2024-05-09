@@ -63,8 +63,6 @@ private:
     
     NeuVCAudioProcessor& mProcessor;
     
-
-    
     NeuVCLNF mLNF;
     ModelChooserLNF modelChooseLNF;
     
@@ -81,7 +79,9 @@ private:
     std::unique_ptr<juce::TextButton> mModelChooserButton;
     
     std::shared_ptr<juce::FileChooser> mFileChooser;
-    juce::String modelPath = "select RVC model file path ->";
+    
+    juce::String rvcPath = "select RVC folder path ->";
+    
     std::unique_ptr<ComboBox> mKey; // C, C#, D, D# ...
     std::unique_ptr<ComboBox> mMode; // Major, Minor, Chromatic
 

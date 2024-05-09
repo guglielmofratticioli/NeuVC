@@ -106,6 +106,8 @@ private:
     juce::AudioFormatManager mThumbnailFormatManager;
     juce::AudioThumbnailCache mThumbnailCache;
     juce::AudioThumbnail mThumbnail;
+    juce::String mRVCPath = "/Users/guglielmofratticioli/Documents/Lib/Retrieval-based-Voice-Conversion-WebUI/infer_cli.py";
+
 
     File mRecordedFile;
     File mRecordedFileDown;

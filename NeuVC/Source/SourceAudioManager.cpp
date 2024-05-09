@@ -3,6 +3,9 @@
 
 #include "SourceAudioManager.h"
 #include "PluginProcessor.h"
+#include <juce_core/juce_core.h>
+#include <stdlib.h> // Include for system()
+
 
 SourceAudioManager::SourceAudioManager(NeuVCAudioProcessor* inProcessor)
     : mProcessor(inProcessor)
@@ -185,6 +188,9 @@ void SourceAudioManager::stopRecording()
         return;
     }
 
+    //mProcessor->setStateToConverting();
+    //"python infer_cli.py --input_path --f0method --opt_path --model_name --index_rate --device"
+
     mProcessor->setStateToPopulated();
     //mProcessor->launchTranscribeJob();
 }
@@ -194,7 +200,8 @@ bool SourceAudioManager::onFileDrop(const File& inFile)
     if (mProcessor->getState() == EmptyAudioAndMidiRegions || mProcessor->getState() == PopulatedAudioAndMidiRegions) {
         mProcessor->clear();
         bool success = AudioUtils::loadAudioFile(inFile, mSourceAudio, mSourceAudioSampleRate);
-
+        
+        
         if (!success) {
             mProcessor->clear();
             juce::NativeMessageBox::showMessageBoxAsync(
@@ -203,6 +210,19 @@ bool SourceAudioManager::onFileDrop(const File& inFile)
                 "Check your file format (Accepted formats: .wav, .aiff, .flac, .mp3, .ogg).");
             return false;
         }
+        
+        // Prepare files to be written
+        File neural_note_dir =
+            File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("NeuVC");
+
+        if (!neural_note_dir.isDirectory()) {
+            neural_note_dir.createDirectory();
+        }
+
+        mDroppedFilename = "";
+        mRecordedFile = neural_note_dir.getChildFile("recorded_audio.wav");
+        inFile.copyFileTo(mRecordedFile);
+        //DBG(mRecordedFile.getFullPathName()); ///Users/guglielmofratticioli/Library/NeuVC/recorded_audio.wav
 
         // Downsample to basic pitch sample rate
         AudioUtils::resampleBuffer(
@@ -226,7 +246,32 @@ bool SourceAudioManager::onFileDrop(const File& inFile)
         mThumbnail.clear();
         mThumbnailCache.clear();
         mThumbnail.setSource(&mDownsampledSourceAudio, 48000, 0);
-
+        
+        //mProcessor->setStateToConverting();
+        /*
+        juce::String command = "cd /Users/guglielmofratticioli/Documents/Lib/Retrieval-based-Voice-Conversion-WebUI copy && ";
+        command+="/Users/guglielmofratticioli/opt/miniconda3/bin/python ";
+        command+=mRVCPath;
+        command+=" --input_path ";
+        command+=mRecordedFile.getFullPathName();
+        command+=" --opt_path ";
+        command+=mRecordedFile.getFullPathName();
+        command+=" --model_name ";
+        command+=mProcessor->getModelPath();
+        command+=" --index_rate ";
+        command+="0 ";
+        command+="--device ";
+        command+="cpu ";
+        
+        juce::ChildProcess process;
+        success = process.start(command);
+        DBG(command);
+        int result = std::system(command.toStdString().c_str());
+            if (result != 0)
+            {
+                DBG("error");
+            }*/
+        
         mProcessor->setStateToPopulated();
         //mProcessor->launchTranscribeJob();
 

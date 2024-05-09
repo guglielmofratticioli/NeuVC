@@ -123,7 +123,7 @@ NeuVCMainView::NeuVCMainView(NeuVCAudioProcessor& processor)
     
     mModelChooserButton = std::make_unique<juce::TextButton>("ModelChooser");
     mModelChooserButton->setClickingTogglesState(false);
-    mModelChooserButton->setButtonText(modelPath);
+    mModelChooserButton->setButtonText(mProcessor.getModelPath());
     mModelChooserButton->setColour(juce::TextButton::ColourIds::textColourOnId, Colour(177,55,217));
     mModelChooserButton->setColour(juce::TextButton::ColourIds::buttonColourId, Colour::fromRGBA(0, 0, 0, 0));
     mModelChooserButton->setColour(juce::TextButton::ColourIds::buttonOnColourId, Colour::fromRGBA(0, 0, 0, 0));
@@ -211,8 +211,8 @@ void NeuVCMainView::modelChoose()
                                   //if (parent) {
                                       //parent->filesDropped(StringArray(fc.getResult().getFullPathName()), 1, 1);
                                   //}
-                                  modelPath = String(fc.getResult().getFullPathName());
-                                  mModelChooserButton->setButtonText(modelPath);
+                                  mProcessor.setModelPath(String(fc.getResult().getFullPathName()));
+                                  mModelChooserButton->setButtonText(mProcessor.getModelPath());
                               });
 }
 
