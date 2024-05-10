@@ -188,11 +188,8 @@ void SourceAudioManager::stopRecording()
         return;
     }
 
-    //mProcessor->setStateToConverting();
-    //"python infer_cli.py --input_path --f0method --opt_path --model_name --index_rate --device"
-
-    mProcessor->setStateToPopulated();
-    //mProcessor->launchTranscribeJob();
+    mProcessor->setStateToProcessing();
+    mProcessor->launchTranscribeJob();
 }
 
 bool SourceAudioManager::onFileDrop(const File& inFile)
@@ -247,33 +244,9 @@ bool SourceAudioManager::onFileDrop(const File& inFile)
         mThumbnailCache.clear();
         mThumbnail.setSource(&mDownsampledSourceAudio, 48000, 0);
         
-        //mProcessor->setStateToConverting();
-        /*
-        juce::String command = "cd /Users/guglielmofratticioli/Documents/Lib/Retrieval-based-Voice-Conversion-WebUI copy && ";
-        command+="/Users/guglielmofratticioli/opt/miniconda3/bin/python ";
-        command+=mRVCPath;
-        command+=" --input_path ";
-        command+=mRecordedFile.getFullPathName();
-        command+=" --opt_path ";
-        command+=mRecordedFile.getFullPathName();
-        command+=" --model_name ";
-        command+=mProcessor->getModelPath();
-        command+=" --index_rate ";
-        command+="0 ";
-        command+="--device ";
-        command+="cpu ";
-        
-        juce::ChildProcess process;
-        success = process.start(command);
-        DBG(command);
-        int result = std::system(command.toStdString().c_str());
-            if (result != 0)
-            {
-                DBG("error");
-            }*/
-        
-        mProcessor->setStateToPopulated();
-        //mProcessor->launchTranscribeJob();
+
+        mProcessor->setStateToProcessing();
+        mProcessor->launchTranscribeJob();
 
     } else {
         jassertfalse;
@@ -304,15 +277,22 @@ void SourceAudioManager::clear()
     mDroppedFilename = "";
 }
 
+void SourceAudioManager::updateSourceAudio()
+{
+    AudioUtils::loadAudioFile(mRecordedFile, mSourceAudio, mSourceAudioSampleRate);
+}
+
 AudioBuffer<float>& SourceAudioManager::getDownsampledSourceAudioForTranscription()
 {
     return mDownsampledSourceAudio;
 }
 
-AudioBuffer<float>& SourceAudioManager::getSourceAudioForPlayback()
+AudioBuffer<float>& SourceAudioManager::getSourceAudio()
 {
     return mSourceAudio;
 }
+
+
 
 std::string SourceAudioManager::getDroppedFilename() const
 {

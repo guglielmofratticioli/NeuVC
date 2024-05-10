@@ -37,7 +37,7 @@ void Player::processBlock(AudioBuffer<float>& inAudioBuffer)
     }
 
     if (is_playing && mProcessor->getState() == PopulatedAudioAndMidiRegions) {
-        const auto& source_buffer = mProcessor->getSourceAudioManager()->getSourceAudioForPlayback();
+        const auto& source_buffer = mProcessor->getSourceAudioManager()->getSourceAudio();
         int num_samples = std::min(inAudioBuffer.getNumSamples(), source_buffer.getNumSamples() - playhead_index);
 
         int num_source_channel = source_buffer.getNumChannels();

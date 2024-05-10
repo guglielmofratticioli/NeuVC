@@ -88,6 +88,8 @@ private:
     std::atomic<int> mCurrentTimeSignatureDenom = -1;
     
     juce::String mModelPath = "select RVC model file path ->";
+    juce::String mRVCPath = "/Users/guglielmofratticioli/Documents/Lib/Retrieval-based-Voice-Conversion-WebUI/infer_cli.py";
+
 
     double mMidiFileTempo = 120.0;
 

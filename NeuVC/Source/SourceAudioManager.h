@@ -63,8 +63,8 @@ public:
      * Get source audio at current processor sample rate.
      * @return Reference to source audio buffer (recorded or loaded from file).
      */
-    AudioBuffer<float>& getSourceAudioForPlayback();
-
+    AudioBuffer<float>& getSourceAudio();
+    double getSourceAudioSampleRate() const;
     /**
      * Return a string containing the filename of the dropped audio file.
      * If the source audio was recorded (not loaded from file), an empty string is returned.
@@ -74,7 +74,7 @@ public:
 
     /**
      * Get number of samples currently acquired (either recorded or loaded from file) at basic pitch sample rate (22.05 kHz)
-     * Note that if recording is ongoing, those sample are not yet available in buffers returned by getDownsampledSourceAudioForTranscription() and getSourceAudioForPlayback().
+     * Note that if recording is ongoing, those sample are not yet available in buffers returned by getDownsampledSourceAudioForTranscription() and getSourceAudio().
      * @return Number of source audio samples already recorded or loaded at basic pitch sample rate.
      */
     int getNumSamplesDownAcquired() const;
@@ -89,6 +89,12 @@ public:
      * @return Pointer to source audio thumbnail
      */
     AudioThumbnail* getAudioThumbnail();
+    
+    void updateSourceAudio();
+    
+    File getRecordedFile() const {
+        return mRecordedFile;
+    };
 
 private:
     NeuVCAudioProcessor* mProcessor;
@@ -106,7 +112,6 @@ private:
     juce::AudioFormatManager mThumbnailFormatManager;
     juce::AudioThumbnailCache mThumbnailCache;
     juce::AudioThumbnail mThumbnail;
-    juce::String mRVCPath = "/Users/guglielmofratticioli/Documents/Lib/Retrieval-based-Voice-Conversion-WebUI/infer_cli.py";
 
 
     File mRecordedFile;

@@ -1,5 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include <stdlib.h>
 
 NeuVCAudioProcessor::NeuVCAudioProcessor()
     : mTree(*this, nullptr, "PARAMETERS", createParameterLayout())
@@ -132,37 +133,38 @@ const juce::Optional<juce::AudioPlayHead::PositionInfo>& NeuVCAudioProcessor::ge
 
 void NeuVCAudioProcessor::_runModel()
 {
-    /*
-    mBasicPitch.setParameters(mParameters.noteSensibility, mParameters.splitSensibility, mParameters.minNoteDurationMs);
-
-    mBasicPitch.transcribeToMIDI(
-        getSourceAudioManager()->getDownsampledSourceAudioForTranscription().getWritePointer(0),
-        getSourceAudioManager()->getNumSamplesDownAcquired());
-
-    mNoteOptions.setParameters(NoteUtils::RootNote(mParameters.keyRootNote.load()),
-                               NoteUtils::ScaleType(mParameters.keyType.load()),
-                               NoteUtils::SnapMode(mParameters.keySnapMode.load()),
-                               mParameters.minMidiNote.load(),
-                               mParameters.maxMidiNote.load());
-
-    auto post_processed_notes = mNoteOptions.process(mBasicPitch.getNoteEvents());
-
-    mRhythmOptions.setParameters(RhythmUtils::TimeDivisions(mParameters.rhythmTimeDivision.load()),
-                                 mParameters.rhythmQuantizationForce.load());
-
-    mPostProcessedNotes = mRhythmOptions.quantize(post_processed_notes);
-
-    Notes::dropOverlappingPitchBends(mPostProcessedNotes);
-    Notes::mergeOverlappingNotesWithSamePitch(mPostProcessedNotes);
-
-    // For the synth
-    auto single_events = SynthController::buildMidiEventsVector(mPostProcessedNotes);
-    mPlayer->getSynthController()->setNewMidiEventsVectorToUse(single_events);
-
-    mMidiFileTempo = mCurrentTempo.load() > 0 ? mCurrentTempo.load() : 120;
-
+    //"python infer_cli.py --input_path --f0method --opt_path --model_name --index_rate --device"
+    setenv("PATH", "/usr/local/bin/", 1);
+    
+    juce::String command = "cd /Users/guglielmofratticioli/Documents/Lib/Retrieval-based-Voice-Conversion-WebUI && ";
+    command+="/Users/guglielmofratticioli/opt/miniconda3/bin/python ";
+    command+=mRVCPath;
+    command+=" --input_path ";
+    command+=getSourceAudioManager()->getRecordedFile().getFullPathName();
+    //command+="/Users/guglielmofratticioli/Downloads/output.wav";
+    command+=" --opt_path ";
+    //command+="/Users/guglielmofratticioli/Downloads/output2.wav";
+    command+=getSourceAudioManager()->getRecordedFile().getFullPathName();
+    command+=" --model_name ";
+    command+=mModelPath;
+    command+=" --index_rate ";
+    command+="0 ";
+    command+="--device ";
+    command+="cpu ";
+    
+    //juce::ChildProcess process;
+    //success = process.start(command);
+    DBG(command);
+    int result = std::system(command.toStdString().c_str());
+        if (result != 0)
+        {
+            DBG("error");
+        }
+    
+    getSourceAudioManager()->updateSourceAudio();
     mState.store(PopulatedAudioAndMidiRegions);
-    */
+    
+    
 }
 
 /*
