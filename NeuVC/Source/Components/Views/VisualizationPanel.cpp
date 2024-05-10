@@ -4,13 +4,13 @@
 VisualizationPanel::VisualizationPanel(NeuVCAudioProcessor* processor)
     : mProcessor(processor)
     , mAudioContainer(processor)
-    , mMidiFileDrag(processor)
+    , mAudioFileDrag(processor)
 {
     mAudioMidiViewport.setViewedComponent(&mAudioContainer);
     addAndMakeVisible(mAudioMidiViewport);
     mAudioContainer.setViewportPtr(&mAudioMidiViewport);
     mAudioMidiViewport.setScrollBarsShown(false, true, false, false);
-    addChildComponent(mMidiFileDrag);
+    addChildComponent(mAudioFileDrag);
     /*
     mFileTempo = std::make_unique<juce::TextEditor>();
     mFileTempo->setInputRestrictions(6, "0123456789.");
@@ -41,7 +41,7 @@ VisualizationPanel::VisualizationPanel(NeuVCAudioProcessor* processor)
     mFileTempo->setText(String(mProcessor->getMidiFileTempo()));
     addChildComponent(*mFileTempo);
      */
-
+    /*
     mAudioGainSlider.setSliderStyle(Slider::SliderStyle::LinearHorizontal);
     mAudioGainSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxLeft, true, 40, 20);
     mAudioGainSlider.setTextValueSuffix(" dB");
@@ -66,7 +66,7 @@ VisualizationPanel::VisualizationPanel(NeuVCAudioProcessor* processor)
         std::make_unique<SliderParameterAttachment>(*mProcessor->mTree.getParameter("MIDI_LEVEL_DB"), mMidiGainSlider);
 
     addChildComponent(mMidiGainSlider);
-
+     */
     // Add this as mouse listener of audio region and pianoroll to control visibility of gain sliders
     mAudioContainer.getAudioRegion()->addMouseListener(this, true);
 }
@@ -80,18 +80,18 @@ void VisualizationPanel::resized()
     mAudioContainer.setBounds(0, 0, getWidth(), getHeight());
     mAudioContainer.changeListenerCallback(mProcessor->getSourceAudioManager()->getAudioThumbnail());
 
-    mMidiFileDrag.setBounds(770, 0, 30, 115);
-
+    mAudioFileDrag.setBounds(770, 0, 30, 115);
+    /*
     mAudioGainSlider.setBounds(getWidth() - 205, 3, 200, 20);
     mMidiGainSlider.setBounds(getWidth() - 205, mAudioContainer.mAudioRegionHeight + 3, 200, 20);
-
+     */
     mAudioRegionBounds = {0, 0, getWidth() , mAudioContainer.mAudioRegionHeight};
     }
 
 void VisualizationPanel::paint(Graphics& g)
 {
     /*
-    if (mMidiFileDrag.isVisible()) {
+    if (mAudioFileDrag.isVisible()) {
         g.setColour(WHITE_TRANSPARENT);
         g.fillRoundedRectangle(
             Rectangle<int>(0, 0, 50, mAudioContainer.mAudioRegionHeight).toFloat(), 4);
@@ -107,13 +107,13 @@ void VisualizationPanel::paint(Graphics& g)
 void VisualizationPanel::clear()
 {
     mAudioContainer.setSize(getWidth() - 50, getHeight());
-    mMidiFileDrag.setVisible(false);
+    mAudioFileDrag.setVisible(false);
 }
 
 
-void VisualizationPanel::setMidiFileDragComponentVisible()
+void VisualizationPanel::setAudioFileDragComponentVisible()
 {
-    mMidiFileDrag.setVisible(true);
+    mAudioFileDrag.setVisible(true);
 }
 
 void VisualizationPanel::mouseEnter(const MouseEvent& event)

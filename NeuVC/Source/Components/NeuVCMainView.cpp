@@ -246,7 +246,7 @@ void NeuVCMainView::updateEnablements()
         mPlayPauseButton->setEnabled(true);
         mBackButton->setEnabled(true);
         mCenterButton->setEnabled(true);
-        mVisualizationPanel.setMidiFileDragComponentVisible();
+        mVisualizationPanel.setAudioFileDragComponentVisible();
     }
 
     repaint();

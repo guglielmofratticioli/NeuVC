@@ -121,11 +121,11 @@ private:
     AudioBuffer<float> mDownsampledSourceAudio; // Always at basic pitch sample rate
 
     // Sample rate for mSourceAudio buffer
-    double mSourceAudioSampleRate = 44100;
+    double mSourceAudioSampleRate = 48000;
 
     std::vector<juce::File> mFilesToDelete;
 
-    double mSampleRate = 44100;
+    double mSampleRate = 48000;
 
     unsigned long long mNumSamplesAcquired = 0;
     unsigned long long mNumSamplesAcquiredDown = 0;

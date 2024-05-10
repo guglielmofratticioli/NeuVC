@@ -109,13 +109,14 @@ void NeuVCAudioProcessor::clear()
 void NeuVCAudioProcessor::launchTranscribeJob()
 {
     jassert(mState.load() == Processing);
-
-    // Have at least one second to transcribe
+    mThreadPool.addJob(mJobLambda);
+    /* Have at least one second to transcribe
     if (getSourceAudioManager()->getNumSamplesDownAcquired() >= 1 * 48000) {
-        mThreadPool.addJob(mJobLambda);
+     mThreadPool.addJob(mJobLambda);
     } else {
         clear();
     }
+     */
 }
 
 
