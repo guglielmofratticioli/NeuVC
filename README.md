@@ -8,3 +8,5 @@ $ mkdir build
 $ cd build 
 $ cmake .. 
 ```
+
+simone è stato qui
