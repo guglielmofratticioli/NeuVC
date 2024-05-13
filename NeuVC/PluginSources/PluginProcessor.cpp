@@ -137,9 +137,19 @@ void NeuVCAudioProcessor::_runModel()
     //"python infer_cli.py --input_path --f0method --opt_path --model_name --index_rate --device"
     setenv("PATH", "/usr/local/bin/", 1);
     
-    juce::String command = "cd /Users/guglielmofratticioli/Documents/Lib/Retrieval-based-Voice-Conversion-WebUI && ";
+    juce::String workDir = getSourceAudioManager()->getRecordedFile().getParentDirectory().getFullPathName();
+    //juce::String command = "cd /Users/guglielmofratticioli/Documents/Lib/Retrieval-based-Voice-Conversion-WebUI && ";
+    juce::String command ="cd ";
+    command += workDir;
+    command +=" && ";
+    
+    //juce::String command = "cd /Users/guglielmofratticioli/Documents/Lib/Retrieval-based-Voice-Conversion-WebUI && ";
     command+="/Users/guglielmofratticioli/opt/miniconda3/bin/python ";
-    command+=mRVCPath;
+    //command+=mRVCPath;
+    
+    command+= workDir;
+    command+="/infer_cli.py ";
+    
     command+=" --input_path ";
     command+=getSourceAudioManager()->getRecordedFile().getFullPathName();
     //command+="/Users/guglielmofratticioli/Downloads/output.wav";
