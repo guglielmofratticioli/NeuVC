@@ -137,24 +137,31 @@ void NeuVCAudioProcessor::_runModel()
     //"python infer_cli.py --input_path --f0method --opt_path --model_name --index_rate --device"
     setenv("PATH", "/usr/local/bin/", 1);
     
+    // -> AUTO PATHS
     juce::String workDir = getSourceAudioManager()->getRecordedFile().getParentDirectory().getFullPathName();
-    //juce::String command = "cd /Users/guglielmofratticioli/Documents/Lib/Retrieval-based-Voice-Conversion-WebUI && ";
     juce::String command ="cd ";
     command += workDir;
     command +=" && ";
+    // - - - - - - - - - - - -
     
+    // -> MANUAL PATH
     //juce::String command = "cd /Users/guglielmofratticioli/Documents/Lib/Retrieval-based-Voice-Conversion-WebUI && ";
-    command+="/Users/guglielmofratticioli/opt/miniconda3/bin/python ";
-    //command+=mRVCPath;
+    // - - - - - - - - - - - -
     
+    command+="/Users/guglielmofratticioli/opt/miniconda3/bin/python ";
+    
+    // -> MANUAL PATH
+    //command+=mRVCPath;
+    // - - - - - - - - - - - -
+    
+    // -> AUTO PATHS
     command+= workDir;
     command+="/infer_cli.py ";
+    // - - - - - - - - - - - -
     
     command+=" --input_path ";
     command+=getSourceAudioManager()->getRecordedFile().getFullPathName();
-    //command+="/Users/guglielmofratticioli/Downloads/output.wav";
     command+=" --opt_path ";
-    //command+="/Users/guglielmofratticioli/Downloads/output2.wav";
     command+=getSourceAudioManager()->getRecordedFile().getFullPathName();
     command+=" --model_name ";
     command+=mModelPath;
