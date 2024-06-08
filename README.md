@@ -11,4 +11,5 @@ $ cmake ..
 
 ## important (Env setup) 
 
-you need to move the whole (with models downloaded) RVC repo in NeuVC working directory (on Mac that's on ..user_name/Library/NeuVC )
+you need to move the whole (with pretraied models downloaded) RVC repo in NeuVC working directory: 
+- MacOS -> '' ..user_name/Library/NeuVC/ ''
