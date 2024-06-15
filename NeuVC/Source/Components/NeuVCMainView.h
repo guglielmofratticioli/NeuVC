@@ -8,23 +8,15 @@
 #include "VisualizationPanel.h"
 #include "NeuVCLNF.h"
 
-class ModelChooserLNF : public LookAndFeel_V4
+class TextBtnLNF : public LookAndFeel_V4
 {
 public:
     void drawButtonBackground (Graphics& g, Button& button, const Colour& backgroundColour, bool isMouseOverButton, bool isButtonDown) override
     {
+        if(isMouseOverButton)
+            g.fillAll (Colour::fromRGBA(255,255,255,10)); // Default color
         if (isButtonDown)
             g.fillAll (Colour::fromRGBA(0,0,0,0)); // Change color when button is pressed
-        else if (isMouseOverButton) {
-            Rectangle<float> bounds = button.getLocalBounds().toFloat();
-            //g.fillAll (Colour::fromRGBA(177,55,217,20)); // Change color when mouse hovers over button
-            ColourGradient gradient(Colour::fromRGB(28,28,28), bounds.getX(), bounds.getCentreY(),
-                                    Colour::fromRGB(36,12,44), 2*bounds.getRight(), bounds.getCentreY(), false);
-                
-                g.setGradientFill(gradient);
-                g.fillAll();
-        }
-            
         else
             g.fillAll (Colour::fromRGBA(0,0,0,0)); // Default color
     }
@@ -63,15 +55,14 @@ private:
     
     NeuVCAudioProcessor& mProcessor;
     
-
-    
     NeuVCLNF mLNF;
-    ModelChooserLNF modelChooseLNF;
+    TextBtnLNF textBtnLNF;
     
     VisualizationPanel mVisualizationPanel;
 
-    std::unique_ptr<juce::TextButton> mMuteButton;
-    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMuteButtonAttachment;
+    std::unique_ptr<juce::TextButton> mProcessButton;
+    std::unique_ptr<juce::TextButton> mModeButton;
+    //std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mProcessButtonAttachment;
     std::unique_ptr<juce::DrawableButton> mRecordButton;
     std::unique_ptr<juce::DrawableButton> mClearButton;
     std::unique_ptr<juce::DrawableButton> mBackButton;
@@ -81,7 +72,9 @@ private:
     std::unique_ptr<juce::TextButton> mModelChooserButton;
     
     std::shared_ptr<juce::FileChooser> mFileChooser;
-    juce::String modelPath = "select RVC model file path ->";
+    
+    juce::String rvcPath = "select RVC folder path ->";
+    
     std::unique_ptr<ComboBox> mKey; // C, C#, D, D# ...
     std::unique_ptr<ComboBox> mMode; // Major, Minor, Chromatic
 

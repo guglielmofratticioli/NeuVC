@@ -1,5 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include <stdlib.h>
 
 NeuVCAudioProcessor::NeuVCAudioProcessor()
     : mTree(*this, nullptr, "PARAMETERS", createParameterLayout())
@@ -108,13 +109,14 @@ void NeuVCAudioProcessor::clear()
 void NeuVCAudioProcessor::launchTranscribeJob()
 {
     jassert(mState.load() == Processing);
-
-    // Have at least one second to transcribe
+    mThreadPool.addJob(mJobLambda);
+    /* Have at least one second to transcribe
     if (getSourceAudioManager()->getNumSamplesDownAcquired() >= 1 * 48000) {
-        mThreadPool.addJob(mJobLambda);
+     mThreadPool.addJob(mJobLambda);
     } else {
         clear();
     }
+     */
 }
 
 
@@ -132,37 +134,55 @@ const juce::Optional<juce::AudioPlayHead::PositionInfo>& NeuVCAudioProcessor::ge
 
 void NeuVCAudioProcessor::_runModel()
 {
-    /*
-    mBasicPitch.setParameters(mParameters.noteSensibility, mParameters.splitSensibility, mParameters.minNoteDurationMs);
-
-    mBasicPitch.transcribeToMIDI(
-        getSourceAudioManager()->getDownsampledSourceAudioForTranscription().getWritePointer(0),
-        getSourceAudioManager()->getNumSamplesDownAcquired());
-
-    mNoteOptions.setParameters(NoteUtils::RootNote(mParameters.keyRootNote.load()),
-                               NoteUtils::ScaleType(mParameters.keyType.load()),
-                               NoteUtils::SnapMode(mParameters.keySnapMode.load()),
-                               mParameters.minMidiNote.load(),
-                               mParameters.maxMidiNote.load());
-
-    auto post_processed_notes = mNoteOptions.process(mBasicPitch.getNoteEvents());
-
-    mRhythmOptions.setParameters(RhythmUtils::TimeDivisions(mParameters.rhythmTimeDivision.load()),
-                                 mParameters.rhythmQuantizationForce.load());
-
-    mPostProcessedNotes = mRhythmOptions.quantize(post_processed_notes);
-
-    Notes::dropOverlappingPitchBends(mPostProcessedNotes);
-    Notes::mergeOverlappingNotesWithSamePitch(mPostProcessedNotes);
-
-    // For the synth
-    auto single_events = SynthController::buildMidiEventsVector(mPostProcessedNotes);
-    mPlayer->getSynthController()->setNewMidiEventsVectorToUse(single_events);
-
-    mMidiFileTempo = mCurrentTempo.load() > 0 ? mCurrentTempo.load() : 120;
-
+    //"python infer_cli.py --input_path --f0method --opt_path --model_name --index_rate --device"
+    setenv("PATH", "/usr/local/bin/", 1);
+    
+    // -> AUTO PATHS
+    juce::String workDir = getSourceAudioManager()->getRecordedFile().getParentDirectory().getFullPathName();
+    juce::String command ="cd ";
+    command += workDir;
+    command +=" && ";
+    // - - - - - - - - - - - -
+    
+    // -> MANUAL PATH
+    //juce::String command = "cd /Users/guglielmofratticioli/Documents/Lib/Retrieval-based-Voice-Conversion-WebUI && ";
+    // - - - - - - - - - - - -
+    
+    command+="/Users/guglielmofratticioli/opt/miniconda3/bin/python ";
+    
+    // -> MANUAL PATH
+    //command+=mRVCPath;
+    // - - - - - - - - - - - -
+    
+    // -> AUTO PATHS
+    command+= workDir;
+    command+="/infer_cli.py ";
+    // - - - - - - - - - - - -
+    
+    command+=" --input_path ";
+    command+=getSourceAudioManager()->getRecordedFile().getFullPathName();
+    command+=" --opt_path ";
+    command+=getSourceAudioManager()->getRecordedFile().getFullPathName();
+    command+=" --model_name ";
+    command+=mModelPath;
+    command+=" --index_rate ";
+    command+="0 ";
+    command+="--device ";
+    command+="cpu ";
+    
+    //juce::ChildProcess process;
+    //success = process.start(command);
+    DBG(command);
+    int result = std::system(command.toStdString().c_str());
+        if (result != 0)
+        {
+            DBG("error");
+        }
+    
+    getSourceAudioManager()->updateSourceAudio();
     mState.store(PopulatedAudioAndMidiRegions);
-    */
+    
+    
 }
 
 /*
@@ -210,7 +230,6 @@ std::string NeuVCAudioProcessor::getTempoStr() const
 }
  
 
-
 std::string NeuVCAudioProcessor::getTimeSignatureStr() const
 {
     
@@ -226,7 +245,6 @@ std::string NeuVCAudioProcessor::getTimeSignatureStr() const
      
 }
  
-
 void NeuVCAudioProcessor::setMidiFileTempo(double inMidiFileTempo)
 {
     mMidiFileTempo = inMidiFileTempo;

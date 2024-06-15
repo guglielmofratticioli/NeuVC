@@ -118,6 +118,9 @@ target_compile_definitions(${BaseTargetName}
 
 # target_include_directories("${BaseTargetName}" PRIVATE ${CMAKE_CURRENT_LIST_DIR}/ThirdParty/onnxruntime/include)
 
+#find_package(PythonLibs REQUIRED)
+#include_directories(${PYTHON_INCLUDE_DIRS})
+
 target_link_libraries(${BaseTargetName}
         PRIVATE
         juce::juce_audio_utils

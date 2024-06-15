@@ -28,6 +28,7 @@ void NeuVCLNF::drawRotarySlider(Graphics& g,
                                      float rotaryEndAngle,
                                      Slider& slider)
 {
+    
     auto bounds = Rectangle<int>(x, y, width, height).toFloat();
 
     auto out_radius = jmin(bounds.getWidth(), bounds.getHeight()) / 2.0f;

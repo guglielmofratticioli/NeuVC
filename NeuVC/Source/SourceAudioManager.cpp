@@ -3,6 +3,9 @@
 
 #include "SourceAudioManager.h"
 #include "PluginProcessor.h"
+#include <juce_core/juce_core.h>
+#include <stdlib.h> // Include for system()
+
 
 SourceAudioManager::SourceAudioManager(NeuVCAudioProcessor* inProcessor)
     : mProcessor(inProcessor)
@@ -185,7 +188,7 @@ void SourceAudioManager::stopRecording()
         return;
     }
 
-    mProcessor->setStateToPopulated();
+    //mProcessor->setStateToProcessing();
     //mProcessor->launchTranscribeJob();
 }
 
@@ -194,7 +197,8 @@ bool SourceAudioManager::onFileDrop(const File& inFile)
     if (mProcessor->getState() == EmptyAudioAndMidiRegions || mProcessor->getState() == PopulatedAudioAndMidiRegions) {
         mProcessor->clear();
         bool success = AudioUtils::loadAudioFile(inFile, mSourceAudio, mSourceAudioSampleRate);
-
+        
+        
         if (!success) {
             mProcessor->clear();
             juce::NativeMessageBox::showMessageBoxAsync(
@@ -203,6 +207,19 @@ bool SourceAudioManager::onFileDrop(const File& inFile)
                 "Check your file format (Accepted formats: .wav, .aiff, .flac, .mp3, .ogg).");
             return false;
         }
+        
+        // Prepare files to be written
+        File neural_note_dir =
+            File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("NeuVC");
+
+        if (!neural_note_dir.isDirectory()) {
+            neural_note_dir.createDirectory();
+        }
+
+        mDroppedFilename = "";
+        mRecordedFile = neural_note_dir.getChildFile("recorded_audio.wav");
+        inFile.copyFileTo(mRecordedFile);
+        //DBG(mRecordedFile.getFullPathName()); ///Users/guglielmofratticioli/Library/NeuVC/recorded_audio.wav
 
         // Downsample to basic pitch sample rate
         AudioUtils::resampleBuffer(
@@ -226,8 +243,9 @@ bool SourceAudioManager::onFileDrop(const File& inFile)
         mThumbnail.clear();
         mThumbnailCache.clear();
         mThumbnail.setSource(&mDownsampledSourceAudio, 48000, 0);
+        
 
-        mProcessor->setStateToPopulated();
+        //mProcessor->setStateToProcessing();
         //mProcessor->launchTranscribeJob();
 
     } else {
@@ -259,15 +277,22 @@ void SourceAudioManager::clear()
     mDroppedFilename = "";
 }
 
+void SourceAudioManager::updateSourceAudio()
+{
+    AudioUtils::loadAudioFile(mRecordedFile, mSourceAudio, mSourceAudioSampleRate);
+}
+
 AudioBuffer<float>& SourceAudioManager::getDownsampledSourceAudioForTranscription()
 {
     return mDownsampledSourceAudio;
 }
 
-AudioBuffer<float>& SourceAudioManager::getSourceAudioForPlayback()
+AudioBuffer<float>& SourceAudioManager::getSourceAudio()
 {
     return mSourceAudio;
 }
+
+
 
 std::string SourceAudioManager::getDroppedFilename() const
 {

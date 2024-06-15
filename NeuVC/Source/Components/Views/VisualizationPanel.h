@@ -6,7 +6,7 @@
 #include <JuceHeader.h>
 
 #include "AudioContainer.h"
-#include "MidiFileDrag.h"
+#include "AudioFileDrag.h"
 #include "PluginProcessor.h"
 #include "VisualizationPanel.h"
 
@@ -21,7 +21,7 @@ public:
 
     void clear();
 
-    void setMidiFileDragComponentVisible();
+    void setAudioFileDragComponentVisible();
 
     void mouseEnter(const juce::MouseEvent& event) override;
 
@@ -37,7 +37,7 @@ private:
     //Keyboard mKeyboard;
     juce::Viewport mAudioMidiViewport;
     AudioContainer mAudioContainer;
-    MidiFileDrag mMidiFileDrag;
+    AudioFileDrag mAudioFileDrag;
 
     juce::Slider mAudioGainSlider;
     std::unique_ptr<juce::SliderParameterAttachment> mAudioGainSliderAttachment;
