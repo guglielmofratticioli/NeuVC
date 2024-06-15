@@ -41,7 +41,7 @@ public:
     void clear();
 
     // TODO: function to put in a new class TranscriptionManager
-    void launchTranscribeJob();
+    void launchConversionJob();
 
     bool isJobRunningOrQueued() const;
 

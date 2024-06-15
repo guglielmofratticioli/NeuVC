@@ -123,7 +123,7 @@ NeuVCMainView::NeuVCMainView(NeuVCAudioProcessor& processor)
     
     mProcessButton->onClick = [this]() {
         mProcessor.setStateToProcessing();
-        mProcessor.launchTranscribeJob();
+        mProcessor.launchConversionJob();
     };
     
     addAndMakeVisible(*mProcessButton);
@@ -215,7 +215,7 @@ void NeuVCMainView::timerCallback()
     if (mProcessor.getState() == Processing && !mProcessor.isJobRunningOrQueued()) {
         mNumCallbacksStuckInProcessingState += 1;
         if (mNumCallbacksStuckInProcessingState >= 10) {
-            //mProcessor.launchTranscribeJob();
+            //mProcessor.launchConversionJob();
         }
     } else {
         mNumCallbacksStuckInProcessingState = 0;

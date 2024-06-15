@@ -106,7 +106,7 @@ void NeuVCAudioProcessor::clear()
     mState.store(EmptyAudioAndMidiRegions);
 }
 
-void NeuVCAudioProcessor::launchTranscribeJob()
+void NeuVCAudioProcessor::launchConversionJob()
 {
     jassert(mState.load() == Processing);
     mThreadPool.addJob(mJobLambda);
@@ -134,55 +134,58 @@ const juce::Optional<juce::AudioPlayHead::PositionInfo>& NeuVCAudioProcessor::ge
 
 void NeuVCAudioProcessor::_runModel()
 {
-    //"python infer_cli.py --input_path --f0method --opt_path --model_name --index_rate --device"
-    setenv("PATH", "/usr/local/bin/", 1);
-    
-    // -> AUTO PATHS
-    juce::String workDir = getSourceAudioManager()->getRecordedFile().getParentDirectory().getFullPathName();
-    juce::String command ="cd ";
-    command += workDir;
-    command +=" && ";
-    // - - - - - - - - - - - -
-    
-    // -> MANUAL PATH
-    //juce::String command = "cd /Users/guglielmofratticioli/Documents/Lib/Retrieval-based-Voice-Conversion-WebUI && ";
-    // - - - - - - - - - - - -
-    
-    command+="/Users/guglielmofratticioli/opt/miniconda3/bin/python ";
-    
-    // -> MANUAL PATH
-    //command+=mRVCPath;
-    // - - - - - - - - - - - -
-    
-    // -> AUTO PATHS
-    command+= workDir;
-    command+="/infer_cli.py ";
-    // - - - - - - - - - - - -
-    
-    command+=" --input_path ";
-    command+=getSourceAudioManager()->getRecordedFile().getFullPathName();
-    command+=" --opt_path ";
-    command+=getSourceAudioManager()->getRecordedFile().getFullPathName();
-    command+=" --model_name ";
-    command+=mModelPath;
-    command+=" --index_rate ";
-    command+="0 ";
-    command+="--device ";
-    command+="cpu ";
-    
-    //juce::ChildProcess process;
-    //success = process.start(command);
-    DBG(command);
-    int result = std::system(command.toStdString().c_str());
-        if (result != 0)
-        {
-            DBG("error");
-        }
-    
-    getSourceAudioManager()->updateSourceAudio();
-    mState.store(PopulatedAudioAndMidiRegions);
-    
-    
+    if(mProcessMode =="python"){
+        //"python infer_cli.py --input_path --f0method --opt_path --model_name --index_rate --device"
+        setenv("PATH", "/usr/local/bin/", 1);
+        
+        // -> AUTO PATHS
+        juce::String workDir = getSourceAudioManager()->getRecordedFile().getParentDirectory().getFullPathName();
+        juce::String command ="cd ";
+        command += workDir;
+        command +=" && ";
+        // - - - - - - - - - - - -
+        
+        // -> MANUAL PATH
+        //juce::String command = "cd /Users/guglielmofratticioli/Documents/Lib/Retrieval-based-Voice-Conversion-WebUI && ";
+        // - - - - - - - - - - - -
+        
+        command+="/Users/guglielmofratticioli/opt/miniconda3/bin/python ";
+        
+        // -> MANUAL PATH
+        //command+=mRVCPath;
+        // - - - - - - - - - - - -
+        
+        // -> AUTO PATHS
+        command+= workDir;
+        command+="/infer_cli.py ";
+        // - - - - - - - - - - - -
+        
+        command+=" --input_path ";
+        command+=getSourceAudioManager()->getRecordedFile().getFullPathName();
+        command+=" --opt_path ";
+        command+=getSourceAudioManager()->getRecordedFile().getFullPathName();
+        command+=" --model_name ";
+        command+=mModelPath;
+        command+=" --index_rate ";
+        command+="0 ";
+        command+="--device ";
+        command+="cpu ";
+        
+        //juce::ChildProcess process;
+        //success = process.start(command);
+        DBG(command);
+        int result = std::system(command.toStdString().c_str());
+            if (result != 0)
+            {
+                DBG("error");
+            }
+        
+        getSourceAudioManager()->updateSourceAudio();
+        mState.store(PopulatedAudioAndMidiRegions);
+    }
+    else if (mProcessMode == "c++"){
+        //TODO C++ Write Here libtorch processing
+    }
 }
 
 /*

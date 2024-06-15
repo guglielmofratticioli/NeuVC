@@ -189,7 +189,7 @@ void SourceAudioManager::stopRecording()
     }
 
     //mProcessor->setStateToProcessing();
-    //mProcessor->launchTranscribeJob();
+    //mProcessor->launchConversionJob();
 }
 
 bool SourceAudioManager::onFileDrop(const File& inFile)
@@ -246,7 +246,7 @@ bool SourceAudioManager::onFileDrop(const File& inFile)
         
 
         //mProcessor->setStateToProcessing();
-        //mProcessor->launchTranscribeJob();
+        //mProcessor->launchConversionJob();
 
     } else {
         jassertfalse;
