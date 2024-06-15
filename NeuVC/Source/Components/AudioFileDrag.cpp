@@ -62,8 +62,20 @@ void AudioFileDrag::mouseDown(const MouseEvent& event)
     }
     */
     //StringArray out_files = {out_file.getFullPathName()};
-    auto out_file = mProcessor->getSourceAudioManager()->getRecordedFile();
-    DragAndDropContainer::performExternalDragDropOfFiles(out_file.getFullPathName(), false, this);
+    auto file = mProcessor->getSourceAudioManager()->getRecordedFile();
+    
+    String originalFileName = file.getFileNameWithoutExtension();
+        String originalFileExtension = file.getFileExtension();
+
+        // Generate a unique filename
+        int index = 0;
+        File copiedFile;
+        do {
+            String newFileName = originalFileName + "_" + String(++index);
+            copiedFile = file.getParentDirectory().getChildFile(newFileName).withFileExtension(originalFileExtension);
+        } while (copiedFile.exists()); // Ensure the filename is unique
+    file.copyFileTo(copiedFile);
+    DragAndDropContainer::performExternalDragDropOfFiles(copiedFile.getFullPathName(), false, this);
 }
 
 void AudioFileDrag::mouseEnter(const MouseEvent& event)
