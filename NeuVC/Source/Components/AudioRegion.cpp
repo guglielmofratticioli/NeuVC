@@ -9,6 +9,17 @@ AudioRegion::AudioRegion(NeuVCAudioProcessor* processor, double inNumPixelsPerSe
     , mNumPixelsPerSecond(inNumPixelsPerSecond)
 {
     addAndMakeVisible(mPlayhead);
+    
+    juce::Image img = ImageFileFormat::loadFrom(BinaryData::logo_png, BinaryData::logo_pngSize);
+    if (!img.isValid()) {
+         juce::Logger::writeToLog("Failed to load icon!");
+     }
+    uint8 a = 0;
+    mIcon.setImages(true, true, true, img, 100, WHITE_TRANSPARENT, img, 100, WHITE_TRANSPARENT, img, 100, WHITE_TRANSPARENT);
+    mIcon.setBounds(380, 37.5, 40, 40);
+    mIcon.setVisible(false);
+    addAndMakeVisible(mIcon);
+    startTimerHz(30);
 }
 
 void AudioRegion::resized()
@@ -21,8 +32,23 @@ void AudioRegion::paint(Graphics& g)
     auto num_samples_available = mProcessor->getSourceAudioManager()->getNumSamplesDownAcquired();
 
     auto* thumbnail = mProcessor->getSourceAudioManager()->getAudioThumbnail();
-
-    if (num_samples_available > 0 && thumbnail->isFullyLoaded()) {
+    if (mProcessor->getState() == Processing) {
+        mIcon.setVisible(true);
+        // Fill the entire region in black color when state is Processing
+        g.setColour(WAVEFORM_BG_COLOR);
+        g.fillRect(getLocalBounds());
+        g.setColour(Colour(177,55,217));
+        g.setFont(LARGE_FONT);
+        g.drawText("audio is converting", getLocalBounds().removeFromTop(40), juce::Justification::centred);
+        // Draw the spinning icon
+        //auto bounds = getLocalBounds().removeFromBottom(50.0).reduced(10);
+        AffineTransform transform;
+        transform = transform.rotation(mAngle, 400,57.5);
+        mIcon.setTransform(transform);
+        
+        
+    } else if (num_samples_available > 0 && thumbnail->isFullyLoaded()) {
+        mIcon.setVisible(false);
         g.setColour(WAVEFORM_BG_COLOR);
         g.fillRoundedRectangle(getLocalBounds().toFloat(), 2.0f);
 
@@ -37,10 +63,8 @@ void AudioRegion::paint(Graphics& g)
                                num_samples_available / 48000,
                                0,
                                0.95f / std::max(thumbnail->getApproximatePeak(), 0.1f));
-    } else if (mProcessor->getState() == Processing) {
-        g.setColour(WAVEFORM_BG_COLOR);
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), 4.0f);
     } else {
+        mIcon.setVisible(false);
         if (mIsFileOver)
             g.setColour(WAVEFORM_BG_COLOR);
         else {
@@ -62,6 +86,15 @@ void AudioRegion::paint(Graphics& g)
         else
             g.drawText("LOAD OR DROP AN AUDIO FILE", getLocalBounds(), juce::Justification::centred);
     }
+}
+
+void AudioRegion::timerCallback()
+{
+    mAngle += 0.1f;
+    if (mAngle > MathConstants<float>::twoPi)
+        mAngle -= MathConstants<float>::twoPi;
+
+    repaint();
 }
 
 void AudioRegion::setIsFileOver(bool inIsFileOver)

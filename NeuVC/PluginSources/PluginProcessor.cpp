@@ -230,7 +230,6 @@ std::string NeuVCAudioProcessor::getTempoStr() const
 }
  
 
-
 std::string NeuVCAudioProcessor::getTimeSignatureStr() const
 {
     
@@ -246,7 +245,6 @@ std::string NeuVCAudioProcessor::getTimeSignatureStr() const
      
 }
  
-
 void NeuVCAudioProcessor::setMidiFileTempo(double inMidiFileTempo)
 {
     mMidiFileTempo = inMidiFileTempo;

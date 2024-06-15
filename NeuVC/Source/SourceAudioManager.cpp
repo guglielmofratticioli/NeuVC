@@ -188,8 +188,8 @@ void SourceAudioManager::stopRecording()
         return;
     }
 
-    mProcessor->setStateToProcessing();
-    mProcessor->launchTranscribeJob();
+    //mProcessor->setStateToProcessing();
+    //mProcessor->launchTranscribeJob();
 }
 
 bool SourceAudioManager::onFileDrop(const File& inFile)
@@ -245,8 +245,8 @@ bool SourceAudioManager::onFileDrop(const File& inFile)
         mThumbnail.setSource(&mDownsampledSourceAudio, 48000, 0);
         
 
-        mProcessor->setStateToProcessing();
-        mProcessor->launchTranscribeJob();
+        //mProcessor->setStateToProcessing();
+        //mProcessor->launchTranscribeJob();
 
     } else {
         jassertfalse;
