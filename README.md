@@ -9,4 +9,7 @@ $ cd build
 $ cmake .. 
 ```
 
-simone è stato qui
+## important (Env setup) 
+
+you need to clone the RVC repository -> [https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI], with pretrained models downloaded, in NeuVC working directory: 
+- MacOS -> '' ..user_name/Library/NeuVC/ ''
