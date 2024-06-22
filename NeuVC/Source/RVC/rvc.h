@@ -20,13 +20,16 @@ public:
 private:
     at::Device device; 
     std::int16_t window;
-    std::int16_t sr;
-    std::int16_t x_pad;
+    std::int32_t sr;
+    std::int16_t t_pad;
+    std::int16_t t_query;
+    std::int16_t t_center;
+    std::int16_t t_max;
     std::int16_t sid;
-    std::int16_t tg_sr;
+    std::int32_t tg_sr;
     std::int16_t f0upKey;
-    at::Tensor pitch;
-    at::Tensor pitchf;
+    std::string version;
+    bool if_f0;    
     torch::jit::script::Module hubert_model;
     torch::jit::script::Module rmvpe_model;
     torch::jit::script::Module net_g;
@@ -34,8 +37,8 @@ private:
     std::vector<torch::Tensor> trainInputs;
     std::vector<torch::Tensor> trainOutputs;
     torch::Tensor voiceConversion(torch::Tensor& buffer_audio);
-    torch::Tensor get_vc(torch::Tensor &audio);
-    void set_f0(const torch::Tensor& audio_padded);
+    torch::Tensor get_vc(torch::Tensor &audio, torch::Tensor &pitch, torch::Tensor &pitchf);
+    std::vector<torch::Tensor> get_f0(const torch::Tensor& audio_padded);
 
 };
 
