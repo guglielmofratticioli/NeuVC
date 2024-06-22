@@ -41,7 +41,7 @@ public:
     void clear();
 
     // TODO: function to put in a new class TranscriptionManager
-    void launchTranscribeJob();
+    void launchConversionJob();
 
     bool isJobRunningOrQueued() const;
 
@@ -68,10 +68,23 @@ public:
     SourceAudioManager* getSourceAudioManager();
 
     Player* getPlayer();
-
+    
+    juce::String getModelPath() const { return mModelPath; };
+    void setModelPath(juce::String path) { mModelPath = path; };
+    
+    void toggleProcessMode(){
+        if(mProcessMode == "python") 
+            mProcessMode = "c++";
+        else 
+            mProcessMode ="python";
+    };
+    
+    juce::String getProcessMode() const {return mProcessMode;};
+    
 private:
+    
     void _runModel(); // Add to TranscriptionManager
-
+    
     std::atomic<State> mState = EmptyAudioAndMidiRegions;
 
     std::unique_ptr<SourceAudioManager> mSourceAudioManager;
@@ -83,6 +96,11 @@ private:
     std::atomic<double> mCurrentTempo = -1.0;
     std::atomic<int> mCurrentTimeSignatureNum = -1;
     std::atomic<int> mCurrentTimeSignatureDenom = -1;
+    
+    juce::String mProcessMode = "python";
+    juce::String mModelPath = "select RVC model file path ->";
+    juce::String mRVCPath = "/Users/guglielmofratticioli/Documents/Lib/Retrieval-based-Voice-Conversion-WebUI/infer_cli.py";
+
 
     double mMidiFileTempo = 120.0;
 

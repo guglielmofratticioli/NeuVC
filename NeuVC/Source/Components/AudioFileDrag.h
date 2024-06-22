@@ -1,7 +1,7 @@
 
 
-#ifndef MidiFileDrag_h
-#define MidiFileDrag_h
+#ifndef AudioFileDrag_h
+#define AudioFileDrag_h
 
 #include <JuceHeader.h>
 
@@ -9,12 +9,12 @@
 #include "PluginProcessor.h"
 #include "UIDefines.h"
 
-class MidiFileDrag : public Component
+class AudioFileDrag : public Component
 {
 public:
-    explicit MidiFileDrag(NeuVCAudioProcessor* processor);
+    explicit AudioFileDrag(NeuVCAudioProcessor* processor);
 
-    ~MidiFileDrag() override;
+    ~AudioFileDrag() override;
 
     void resized() override;
 
@@ -29,9 +29,9 @@ public:
 private:
     NeuVCAudioProcessor* mProcessor;
 
-    juce::File mTempDirectory = juce::File::getSpecialLocation(juce::File::tempDirectory);
+    //juce::File mTempDirectory = juce::File::getSpecialLocation(juce::File::tempDirectory);
 
     //MidiFileWriter mMidiFileWriter;
 };
 
-#endif // MidiFileDrag_h
+#endif // AudioFileDrag_h

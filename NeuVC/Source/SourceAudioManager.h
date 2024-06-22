@@ -63,8 +63,8 @@ public:
      * Get source audio at current processor sample rate.
      * @return Reference to source audio buffer (recorded or loaded from file).
      */
-    AudioBuffer<float>& getSourceAudioForPlayback();
-
+    AudioBuffer<float>& getSourceAudio();
+    double getSourceAudioSampleRate() const;
     /**
      * Return a string containing the filename of the dropped audio file.
      * If the source audio was recorded (not loaded from file), an empty string is returned.
@@ -74,7 +74,7 @@ public:
 
     /**
      * Get number of samples currently acquired (either recorded or loaded from file) at basic pitch sample rate (22.05 kHz)
-     * Note that if recording is ongoing, those sample are not yet available in buffers returned by getDownsampledSourceAudioForTranscription() and getSourceAudioForPlayback().
+     * Note that if recording is ongoing, those sample are not yet available in buffers returned by getDownsampledSourceAudioForTranscription() and getSourceAudio().
      * @return Number of source audio samples already recorded or loaded at basic pitch sample rate.
      */
     int getNumSamplesDownAcquired() const;
@@ -89,6 +89,12 @@ public:
      * @return Pointer to source audio thumbnail
      */
     AudioThumbnail* getAudioThumbnail();
+    
+    void updateSourceAudio();
+    
+    File getRecordedFile() const {
+        return mRecordedFile;
+    };
 
 private:
     NeuVCAudioProcessor* mProcessor;
@@ -107,6 +113,7 @@ private:
     juce::AudioThumbnailCache mThumbnailCache;
     juce::AudioThumbnail mThumbnail;
 
+
     File mRecordedFile;
     File mRecordedFileDown;
 
@@ -114,11 +121,11 @@ private:
     AudioBuffer<float> mDownsampledSourceAudio; // Always at basic pitch sample rate
 
     // Sample rate for mSourceAudio buffer
-    double mSourceAudioSampleRate = 44100;
+    double mSourceAudioSampleRate = 48000;
 
     std::vector<juce::File> mFilesToDelete;
 
-    double mSampleRate = 44100;
+    double mSampleRate = 48000;
 
     unsigned long long mNumSamplesAcquired = 0;
     unsigned long long mNumSamplesAcquiredDown = 0;

@@ -50,7 +50,7 @@ NeuVCMainView::NeuVCMainView(NeuVCAudioProcessor& processor)
         updateEnablements();
     };
     addAndMakeVisible(*mClearButton);
-
+    
     mBackButton = std::make_unique<DrawableButton>("BackButton", DrawableButton::ButtonStyle::ImageRaw);
     mBackButton->setClickingTogglesState(false);
     mBackButton->setColour(DrawableButton::ColourIds::backgroundColourId, Colours::transparentBlack);
@@ -108,26 +108,52 @@ NeuVCMainView::NeuVCMainView(NeuVCAudioProcessor& processor)
     addAndMakeVisible(*mCenterButton);
     
 
-    mMuteButton = std::make_unique<juce::TextButton>("MuteButton");
-    mMuteButton->setButtonText("");
-    mMuteButton->setClickingTogglesState(true);
+    mProcessButton = std::make_unique<juce::TextButton>("ProcessButton");
+    mProcessButton->setButtonText("process");
+    //mProcessButton->setClickingTogglesState(true);
 
-    mMuteButton->setColour(juce::TextButton::buttonColourId, juce::Colours::white.withAlpha(0.5f));
-    mMuteButton->setColour(juce::TextButton::textColourOffId, juce::Colours::white);
-    mMuteButton->setColour(juce::TextButton::textColourOnId, juce::Colours::white); // Set the text color when button is on
-    mMuteButton->setColour(juce::TextButton::buttonOnColourId, Colour(177,55,217));
+    mProcessButton->setColour(juce::TextButton::ColourIds::textColourOnId, Colour(177,55,217));
+    mProcessButton->setColour(juce::TextButton::ColourIds::buttonColourId, Colour::fromRGBA(0, 0, 0, 0));
+    mProcessButton->setColour(juce::TextButton::ColourIds::buttonOnColourId, Colour::fromRGBA(0, 0, 0, 0));
+    mProcessButton->setLookAndFeel(&textBtnLNF);
     
-    mMuteButtonAttachment =
-        std::make_unique<AudioProcessorValueTreeState::ButtonAttachment>(mProcessor.mTree, "MUTE", *mMuteButton);
-    addAndMakeVisible(*mMuteButton);
+    /*mProcessButtonAttachment =
+        std::make_unique<AudioProcessorValueTreeState::ButtonAttachment>(mProcessor.mTree, "MUTE", *mProcessButton);
+     */
+    
+    mProcessButton->onClick = [this]() {
+        mProcessor.setStateToProcessing();
+        mProcessor.launchConversionJob();
+    };
+    
+    addAndMakeVisible(*mProcessButton);
+    
+    mModeButton = std::make_unique<juce::TextButton>("ProcessModeButton");
+    mModeButton->setClickingTogglesState(true);
+    mModeButton->setButtonText(mProcessor.getProcessMode());
+    mModeButton->setColour(juce::TextButton::ColourIds::textColourOnId, Colour(177,55,217));
+    mModeButton->setColour(juce::TextButton::ColourIds::buttonColourId, Colour::fromRGBA(0, 0, 0, 0));
+    mModeButton->setColour(juce::TextButton::ColourIds::buttonOnColourId, Colour::fromRGBA(0, 0, 0, 0));
+    mModeButton->setLookAndFeel(&textBtnLNF);
+    
+    /*mProcessButtonAttachment =
+        std::make_unique<AudioProcessorValueTreeState::ButtonAttachment>(mProcessor.mTree, "MUTE", *mProcessButton);
+     */
+    
+    mModeButton->onClick = [this]() {
+        mProcessor.toggleProcessMode();
+        mModeButton->setButtonText(mProcessor.getProcessMode());
+    };
+    
+    addAndMakeVisible(*mModeButton);
     
     mModelChooserButton = std::make_unique<juce::TextButton>("ModelChooser");
     mModelChooserButton->setClickingTogglesState(false);
-    mModelChooserButton->setButtonText(modelPath);
+    mModelChooserButton->setButtonText(mProcessor.getModelPath());
     mModelChooserButton->setColour(juce::TextButton::ColourIds::textColourOnId, Colour(177,55,217));
     mModelChooserButton->setColour(juce::TextButton::ColourIds::buttonColourId, Colour::fromRGBA(0, 0, 0, 0));
     mModelChooserButton->setColour(juce::TextButton::ColourIds::buttonOnColourId, Colour::fromRGBA(0, 0, 0, 0));
-    mModelChooserButton->setLookAndFeel(&modelChooseLNF);
+    mModelChooserButton->setLookAndFeel(&textBtnLNF);
     mModelChooserButton->onClick = [this]() {
         modelChoose();
     };
@@ -154,7 +180,8 @@ void NeuVCMainView::resized()
     mCenterButton->setBounds(80, 115, 35, 35);
     mBackButton->setBounds(120, 115, 35, 35);
     mPlayPauseButton->setBounds(160, 115, 35, 35);
-    mMuteButton->setBounds(200, 115, 35, 35);
+    mProcessButton->setBounds(210, 115, 80, 35);
+    mModeButton->setBounds(300, 115, 80, 35);
     mModelChooserButton->setBounds(400, 115, 400, 35);
     mVisualizationPanel.setBounds(0, 0, 800, 115);
 }
@@ -188,7 +215,7 @@ void NeuVCMainView::timerCallback()
     if (mProcessor.getState() == Processing && !mProcessor.isJobRunningOrQueued()) {
         mNumCallbacksStuckInProcessingState += 1;
         if (mNumCallbacksStuckInProcessingState >= 10) {
-            //mProcessor.launchTranscribeJob();
+            //mProcessor.launchConversionJob();
         }
     } else {
         mNumCallbacksStuckInProcessingState = 0;
@@ -211,8 +238,8 @@ void NeuVCMainView::modelChoose()
                                   //if (parent) {
                                       //parent->filesDropped(StringArray(fc.getResult().getFullPathName()), 1, 1);
                                   //}
-                                  modelPath = String(fc.getResult().getFullPathName());
-                                  mModelChooserButton->setButtonText(modelPath);
+                                  mProcessor.setModelPath(String(fc.getResult().getFullPathName()));
+                                  mModelChooserButton->setButtonText(mProcessor.getModelPath());
                               });
 }
 
@@ -246,7 +273,7 @@ void NeuVCMainView::updateEnablements()
         mPlayPauseButton->setEnabled(true);
         mBackButton->setEnabled(true);
         mCenterButton->setEnabled(true);
-        mVisualizationPanel.setMidiFileDragComponentVisible();
+        mVisualizationPanel.setAudioFileDragComponentVisible();
     }
 
     repaint();

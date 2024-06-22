@@ -1,35 +1,38 @@
 
 
-#include "MidiFileDrag.h"
+#include "AudioFileDrag.h"
 
-MidiFileDrag::MidiFileDrag(NeuVCAudioProcessor* processor)
+AudioFileDrag::AudioFileDrag(NeuVCAudioProcessor* processor)
     : mProcessor(processor)
 {
 }
 
-MidiFileDrag::~MidiFileDrag()
+AudioFileDrag::~AudioFileDrag()
 {
+    /*
     if (mTempDirectory.isDirectory()) {
         mTempDirectory.deleteRecursively();
     }
+     */
 }
 
-void MidiFileDrag::resized()
+void AudioFileDrag::resized()
 {
 }
 
-void MidiFileDrag::paint(Graphics& g)
+void AudioFileDrag::paint(Graphics& g)
 {
-    g.setColour(WHITE_TRANSPARENT);
+    g.setColour(Colour::fromRGBA(177, 55, 215, 100));
     g.fillRoundedRectangle(getLocalBounds().toFloat(), 4.0f);
 
-    g.setColour(BLACK);
-    g.setFont(LABEL_FONT);
-    g.drawText("->", getLocalBounds(), juce::Justification::centred);
+    g.setColour(Colour(28,28,28));
+    g.setFont(LARGE_FONT);
+    g.drawText(">", getLocalBounds(), juce::Justification::centred);
 }
 
-void MidiFileDrag::mouseDown(const MouseEvent& event)
+void AudioFileDrag::mouseDown(const MouseEvent& event)
 {
+    /*
     if (!mTempDirectory.isDirectory()) {
         auto result = mTempDirectory.createDirectory();
         if (result.failed()) {
@@ -44,9 +47,7 @@ void MidiFileDrag::mouseDown(const MouseEvent& event)
         filename = "NNTranscription.mid";
     else
         filename += "_NNTranscription.mid";
-
-    auto out_file = mTempDirectory.getChildFile(filename);
-    
+     */
     /*
     auto success_midi_file_creation = mMidiFileWriter.writeMidiFile(
         mProcessor->getNoteEventVector(),
@@ -60,17 +61,29 @@ void MidiFileDrag::mouseDown(const MouseEvent& event)
             juce::MessageBoxIconType::NoIcon, "Error", "Could not create the midi file.");
     }
     */
-    StringArray out_files = {out_file.getFullPathName()};
+    //StringArray out_files = {out_file.getFullPathName()};
+    auto file = mProcessor->getSourceAudioManager()->getRecordedFile();
+    
+    String originalFileName = file.getFileNameWithoutExtension();
+        String originalFileExtension = file.getFileExtension();
 
-    DragAndDropContainer::performExternalDragDropOfFiles(out_files, false, this);
+        // Generate a unique filename
+        int index = 0;
+        File copiedFile;
+        do {
+            String newFileName = originalFileName + "_" + String(++index);
+            copiedFile = file.getParentDirectory().getChildFile(newFileName).withFileExtension(originalFileExtension);
+        } while (copiedFile.exists()); // Ensure the filename is unique
+    file.copyFileTo(copiedFile);
+    DragAndDropContainer::performExternalDragDropOfFiles(copiedFile.getFullPathName(), false, this);
 }
 
-void MidiFileDrag::mouseEnter(const MouseEvent& event)
+void AudioFileDrag::mouseEnter(const MouseEvent& event)
 {
     setMouseCursor(juce::MouseCursor::DraggingHandCursor);
 }
 
-void MidiFileDrag::mouseExit(const MouseEvent& event)
+void AudioFileDrag::mouseExit(const MouseEvent& event)
 {
     setMouseCursor(juce::MouseCursor::ParentCursor);
 }
