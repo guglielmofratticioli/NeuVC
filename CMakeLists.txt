@@ -2,8 +2,12 @@ cmake_minimum_required(VERSION 3.16)
 project(NeuVCPlugin VERSION 0.1.0)
 
 # C++ settings
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 set(CMAKE_CXX_STANDARD 17)
 enable_language(CXX)
+
+set(CMAKE_PREFIX_PATH "C:/Program\ Files/libtorch2.0.0cpu-debug/libtorch") # location of libtorch
+find_package(Torch REQUIRED)
 
 #Compile commands, useful for some IDEs like VS-Code
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
@@ -146,3 +150,20 @@ if (WIN32)
     target_include_directories(${BaseTargetName} PRIVATE ThirdParty/ASIO/common)
 endif ()
 
+
+add_executable(test_rvc NeuVC/Source/RVC/rvc.cpp)
+target_link_libraries(test_rvc "${TORCH_LIBRARIES}")
+set_property(TARGET test_rvc PROPERTY CXX_STANDARD 17)
+
+
+# The following code block is suggested to be used on Windows.
+# According to https://github.com/pytorch/pytorch/issues/25457,
+# the DLLs need to be copied to avoid memory errors.
+if (MSVC)
+  file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
+  add_custom_command(TARGET test_rvc
+                     POST_BUILD
+                     COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                     ${TORCH_DLLS}
+                     $<TARGET_FILE_DIR:test_rvc>)
+endif (MSVC)
