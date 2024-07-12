@@ -6,7 +6,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 set(CMAKE_CXX_STANDARD 17)
 enable_language(CXX)
 
-set(CMAKE_PREFIX_PATH "C:/Program\ Files/libtorch2.0.0cpu-debug/libtorch") # location of libtorch
+# set(CMAKE_PREFIX_PATH "C:/Program\ Files/libtorch2.0.0cpu-debug/libtorch") # location of libtorch
+set(Torch_DIR "/Users/guglielmofratticioli/Documents/Lib/libtorch/share/cmake/Torch")
 find_package(Torch REQUIRED)
 
 #Compile commands, useful for some IDEs like VS-Code
@@ -150,9 +151,18 @@ if (WIN32)
     target_include_directories(${BaseTargetName} PRIVATE ThirdParty/ASIO/common)
 endif ()
 
+# # # # # # # # 
 
 add_executable(test_rvc NeuVC/Source/RVC/rvc.cpp)
+
 target_link_libraries(test_rvc "${TORCH_LIBRARIES}")
+
+# Include directories
+include_directories(${TORCH_INCLUDE_DIRS})
+
+# Set C++ flags
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+
 set_property(TARGET test_rvc PROPERTY CXX_STANDARD 17)
 
 

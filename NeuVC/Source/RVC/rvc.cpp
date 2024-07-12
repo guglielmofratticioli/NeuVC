@@ -78,8 +78,17 @@ torch::Tensor RVC::get_vc(torch::Tensor &audio, torch::Tensor &pitch, torch::Ten
     torch::Tensor phone_lengths;
     torch::Tensor nsff0;
     torch::Tensor out_audio;
+   
 
-    bool is_pitch_and_pitchf = (!torch::equal(pitch, torch::tensor(NULL))) && (!torch::equal(pitchf, torch::tensor(NULL)));
+    //bool is_pitch_and_pitchf = (!torch::equal(pitch, torch::tensor(NULL))) && (!torch::equal(pitchf, torch::tensor(NULL)));
+    
+    bool is_pitch_and_pitchf = true;
+    
+    if (pitch.defined() && pitchf.defined()) {
+        is_pitch_and_pitchf = true;
+    } else {
+        is_pitch_and_pitchf = false;
+    }
 
     mask = torch::empty(audio.sizes(), torch::kBool).to(device).fill_(false);
     if (version == "v1")
