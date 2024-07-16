@@ -270,7 +270,10 @@ torch::Tensor RVC::voiceConversion(torch::Tensor &buffer_audio)
                 else
                 {
                     torch::Tensor audio_sliced = audio_padded.slice(0, s, x + x_pad * 2 + window);
-                    torch::Tensor out_vc = get_vc(audio_sliced, torch::tensor(NULL), torch::tensor(NULL));
+                    torch::Tensor empty_tensor1 = torch::Tensor();
+                    torch::Tensor empty_tensor2 = torch::Tensor();
+                    torch::Tensor out_vc = get_vc(audio_sliced, empty_tensor1, empty_tensor2);
+                    //torch::Tensor out_vc = get_vc(audio_sliced, torch::Tensor(), torch::Tensor());
                     audio_opt.push_back(out_vc.slice(1, x_pad_tgt, -x_pad_tgt));
                 }
                 s = x;
@@ -294,7 +297,9 @@ torch::Tensor RVC::voiceConversion(torch::Tensor &buffer_audio)
             else
             {
                 torch::Tensor audio_sliced = audio_padded.slice(1, s, c10::nullopt);
-                torch::Tensor out_vc = get_vc(audio_sliced, torch::tensor(NULL), torch::tensor(NULL));
+                torch::Tensor empty_tensor1 = torch::Tensor();
+                torch::Tensor empty_tensor2 = torch::Tensor();
+                torch::Tensor out_vc = get_vc(audio_sliced, empty_tensor1, empty_tensor2);
                 audio_opt.push_back(out_vc.slice(1, x_pad_tgt, -x_pad_tgt));
             }
             audio_vc = torch::cat(audio_opt, 1);
@@ -315,7 +320,8 @@ std::vector<float> RVC::voiceConversion(const std::vector<float> &buffer_audio)
      // copy input data into a tensor 
     torch::Tensor in_vc = torch::tensor(buffer_audio).unsqueeze(0).to(device);
     // pass through the network:
-    torch::Tensor out_vc = voiceConversion(in_vc.to(device)).squeeze();
+    in_vc = in_vc.to(device);
+    torch::Tensor out_vc = voiceConversion(in_vc).squeeze();
     // copy output back out to a vector
     std::vector<float> outputs(out_vc.data_ptr<float>(), out_vc.data_ptr<float>() + out_vc.numel());
 
