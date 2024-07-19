@@ -2,6 +2,7 @@
 #include "PluginEditor.h"
 #include <stdlib.h>
 
+
 NeuVCAudioProcessor::NeuVCAudioProcessor()
     : mTree(*this, nullptr, "PARAMETERS", createParameterLayout())
     , mThreadPool(1)
@@ -35,6 +36,9 @@ void NeuVCAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     mSourceAudioManager->prepareToPlay(sampleRate, samplesPerBlock);
     mPlayer->prepareToPlay(sampleRate, samplesPerBlock);
+    RVC rvc;
+    
+
 }
 
 void NeuVCAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -185,8 +189,54 @@ void NeuVCAudioProcessor::_runModel()
     }
     else if (mProcessMode == "c++"){
         //TODO C++ Write Here libtorch processing
+        auto file = getSourceAudioManager()->getRecordedFile();
+        std::vector<float> audio = loadAudioFile(file);
+        
+        audio = normalizAudio(audio);
+        audio = resampleAudio(audio, 48000, 16000);
+        
+        audio = rvc.voiceConversion(audio);
+        juce::Logger::writeToLog("Audio Converted");
+        saveAudioToFile(audio,  16000, 2, file);
+        juce::Logger::writeToLog("File Saved");
+        
+        setStateToPopulated();
     }
 }
+
+// TODO: This function is faiing
+void NeuVCAudioProcessor::saveAudioToFile(const std::vector<float>& audioData, int sampleRate, int numChannels, const juce::File& file)
+{
+    // Create a JUCE audio format manager and add WAV format to it
+    juce::AudioFormatManager formatManager;
+    formatManager.registerBasicFormats();
+
+    // Open a file output stream for the target file
+    std::unique_ptr<juce::FileOutputStream> outputStream(file.createOutputStream());
+    if (outputStream == nullptr) {
+        juce::Logger::writeToLog("Failed to open file for writing.");
+        return;
+    }
+
+    // Create a WAV format writer
+    std::unique_ptr<juce::AudioFormatWriter> writer(formatManager.findFormatForFileExtension(file.getFileExtension())->createWriterFor(outputStream.get(), sampleRate, numChannels, 16, {}, 0));
+    if (writer == nullptr) {
+        juce::Logger::writeToLog("Failed to create audio format writer.");
+        return;
+    }
+
+    // Write audio data to the file
+    juce::AudioBuffer<float> audioBuffer(numChannels, audioData.size() / numChannels);
+    for (int i = 0; i < numChannels; ++i) {
+        auto* channelData = audioBuffer.getWritePointer(i);
+        for (size_t j = 0; j < audioData.size() / numChannels; ++j) {
+            channelData[j] = audioData[j * numChannels + i];
+        }
+    }
+
+    writer->writeFromAudioSampleBuffer(audioBuffer, 0, audioBuffer.getNumSamples());
+}
+
 
 /*
 void NeuVCAudioProcessor::updatePostProcessing()
@@ -278,4 +328,73 @@ SourceAudioManager* NeuVCAudioProcessor::getSourceAudioManager()
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new NeuVCAudioProcessor();
+}
+
+
+std::vector<float> NeuVCAudioProcessor::loadAudioFile(const juce::File& file)
+{
+    juce::AudioFormatManager formatManager;
+    formatManager.registerBasicFormats();
+
+    std::unique_ptr<juce::AudioFormatReader> reader(formatManager.createReaderFor(file));
+
+    if (reader == nullptr)
+        throw std::runtime_error("Failed to create reader for audio file");
+
+    juce::AudioBuffer<float> buffer(reader->numChannels, static_cast<int>(reader->lengthInSamples));
+    reader->read(&buffer, 0, static_cast<int>(reader->lengthInSamples), 0, true, true);
+
+    std::vector<float> audioData;
+    for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
+    {
+        audioData.insert(audioData.end(), buffer.getReadPointer(channel), buffer.getReadPointer(channel) + buffer.getNumSamples());
+    }
+
+    return audioData;
+}
+
+std::vector<float> NeuVCAudioProcessor::normalizAudio(const std::vector<float>& audioData, float targetLevel )
+{
+    // Find the maximum absolute value in the audio data
+    float maxVal = *std::max_element(audioData.begin(), audioData.end(),
+                                     [](float a, float b) { return std::abs(a) < std::abs(b); });
+
+    // Avoid division by zero
+    if (maxVal == 0.0f)
+        return audioData;
+
+    // Calculate the normalization factor
+    float normalizationFactor = targetLevel / maxVal;
+
+    // Create a new vector to hold normalized audio data
+    std::vector<float> normalizedAudio;
+    normalizedAudio.reserve(audioData.size());
+
+    // Apply normalization
+    std::transform(audioData.begin(), audioData.end(), std::back_inserter(normalizedAudio),
+                   [normalizationFactor](float sample) { return sample * normalizationFactor; });
+
+    return normalizedAudio;
+}
+
+std::vector<float> NeuVCAudioProcessor::resampleAudio(const std::vector<float>& input, double inputSampleRate, double outputSampleRate)
+{
+    // Ensure the input sample rate and output sample rate are valid
+    if (inputSampleRate <= 0 || outputSampleRate <= 0)
+        throw std::invalid_argument("Sample rates must be positive");
+
+    // Calculate the resampling ratio
+    double resampleRatio = inputSampleRate / outputSampleRate;
+
+    // Create the resampler
+    juce::LagrangeInterpolator resampler;
+
+    // Prepare the output vector
+    int numOutputSamples = static_cast<int>(input.size() / resampleRatio);
+    std::vector<float> output(numOutputSamples);
+
+    // Perform the resampling
+    resampler.process(resampleRatio, input.data(), output.data(), numOutputSamples);
+
+    return output;
 }

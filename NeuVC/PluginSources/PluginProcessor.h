@@ -7,6 +7,9 @@
 #include "ProcessorBase.h"
 #include "Player.h"
 #include "SourceAudioManager.h"
+#include "rvc.h"
+#include <vector>
+
 
 enum State { EmptyAudioAndMidiRegions = 0, Recording, Processing, PopulatedAudioAndMidiRegions };
 
@@ -86,10 +89,21 @@ private:
     void _runModel(); // Add to TranscriptionManager
     
     std::atomic<State> mState = EmptyAudioAndMidiRegions;
+    
+    
+    std::vector<float> loadAudioFile(const juce::File& file);
+    
+    std::vector<float> normalizAudio(const std::vector<float>& audioData, float targetLevel = 1.0f);
+    
+    std::vector<float> resampleAudio(const std::vector<float>& input, double inputSampleRate, double outputSampleRate);
+    
+    void saveAudioToFile(const std::vector<float>& audioData, int sampleRate, int numChannels, const juce::File& file);
+    
 
     std::unique_ptr<SourceAudioManager> mSourceAudioManager;
     std::unique_ptr<Player> mPlayer;
-
+    RVC rvc;
+    
     Parameters mParameters;
     bool mWasRecording = false;
 

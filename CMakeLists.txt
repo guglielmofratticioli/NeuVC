@@ -2,178 +2,146 @@ cmake_minimum_required(VERSION 3.16)
 project(NeuVCPlugin VERSION 0.1.0)
 
 # C++ settings
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 set(CMAKE_CXX_STANDARD 17)
-enable_language(CXX)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# set(CMAKE_PREFIX_PATH "C:/Program\ Files/libtorch2.0.0cpu-debug/libtorch") # location of libtorch
-set(Torch_DIR "/Users/guglielmofratticioli/Documents/Lib/libtorch/share/cmake/Torch")
-find_package(Torch REQUIRED)
+# Enable verbose makefile
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
-#Compile commands, useful for some IDEs like VS-Code
-set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+# Set minimum MacOS target
+set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "Minimum OS X deployment version" FORCE)
 
-#Minimum MacOS target, set globally
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum OS X deployment version" FORCE)
-
+# Enable universal binary on Mac if needed
 option(UniversalBinary "Build universal binary for mac" OFF)
-#option(RTNeural_Release "When CMAKE_BUILD_TYPE=Debug, overwrite it to Release for RTNeural only" OFF)
-
 if (UniversalBinary)
     set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE INTERNAL "")
     message(STATUS "Building Universal Binary")
-endif ()
+endif()
 
-#static linking in Windows
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+# Set the location of libtorch
+set(Torch_DIR "/Users/guglielmofratticioli/Documents/Lib/libtorch/share/cmake/Torch")
+find_package(Torch REQUIRED)
 
+# Compile commands for IDEs like VS-Code
+set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+
+# Static linking on Windows
+if (WIN32)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
+# Add JUCE
 add_subdirectory(ThirdParty/JUCE)
-#add_subdirectory(ThirdParty/RTNeural)
 
 set(BaseTargetName NeuVC)
 
-# Set COPY_PLUGIN_AFTER_BUILD to TRUE on Mac and to FALSE on Windows due to permission issues
+# Set COPY_PLUGIN_AFTER_BUILD based on OS
 if (APPLE)
     set(COPY_PLUGIN_AFTER_BUILD TRUE)
-else ()
+else()
     set(COPY_PLUGIN_AFTER_BUILD FALSE)
-endif ()
+endif()
 
 juce_add_plugin("${BaseTargetName}"
-        # VERSION ...                               # Set this if the plugin version is different to the project version
-        ICON_BIG "${CMAKE_CURRENT_LIST_DIR}/NeuVC/Assets/logo.png"
-        ICON_SMALL "${CMAKE_CURRENT_LIST_DIR}/NeuVC/Assets/logo.png"
-        COMPANY_NAME "Dr. Audio"
-        IS_SYNTH FALSE
-        NEEDS_MIDI_INPUT FALSE
-        NEEDS_MIDI_OUTPUT FALSE
-        IS_MIDI_EFFECT FALSE
-        EDITOR_WANTS_KEYBOARD_FOCUS FALSE
-        COPY_PLUGIN_AFTER_BUILD ${COPY_PLUGIN_AFTER_BUILD}
-        MICROPHONE_PERMISSION_ENABLED TRUE
-        MICROPHONE_PERMISSION_TEXT "Need access to Microphone"
-        HARDENED_RUNTIME_ENABLED TRUE
-        PLUGIN_MANUFACTURER_CODE DrAu
-        PLUGIN_CODE NRNT
-        FORMATS AU VST3 Standalone
-        PRODUCT_NAME "NeuVC")
+    ICON_BIG "${CMAKE_CURRENT_LIST_DIR}/NeuVC/Assets/logo.png"
+    ICON_SMALL "${CMAKE_CURRENT_LIST_DIR}/NeuVC/Assets/logo.png"
+
+    IS_SYNTH FALSE
+    NEEDS_MIDI_INPUT FALSE
+    NEEDS_MIDI_OUTPUT FALSE
+    IS_MIDI_EFFECT FALSE
+    EDITOR_WANTS_KEYBOARD_FOCUS FALSE
+    COPY_PLUGIN_AFTER_BUILD ${COPY_PLUGIN_AFTER_BUILD}
+    MICROPHONE_PERMISSION_ENABLED TRUE
+    MICROPHONE_PERMISSION_TEXT "Need access to Microphone"
+    HARDENED_RUNTIME_ENABLED TRUE
+    PLUGIN_MANUFACTURER_CODE DrAu
+    PLUGIN_CODE NRNT
+    FORMATS AU VST3 Standalone
+    PRODUCT_NAME "NeuVC"
+)
 
 juce_generate_juce_header(${BaseTargetName})
 
 # Source files
 file(GLOB_RECURSE SOURCES_PLUGIN ${CMAKE_CURRENT_LIST_DIR}/NeuVC/*.cpp ${CMAKE_CURRENT_LIST_DIR}/Lib/*.cpp)
-# list(REMOVE_ITEM SOURCES_PLUGIN ${CMAKE_CURRENT_LIST_DIR}/Lib/Model/BasicPitchCNN.cpp)
 file(GLOB_RECURSE HEADERS_PLUGIN ${CMAKE_CURRENT_LIST_DIR}/NeuVC/*.h ${CMAKE_CURRENT_LIST_DIR}/Lib/*.h)
-# list(REMOVE_ITEM HEADERS_PLUGIN ${CMAKE_CURRENT_LIST_DIR}/Lib/Model/BasicPitchCNN.h)
-
 target_sources(${BaseTargetName} PRIVATE ${SOURCES_PLUGIN} ${HEADERS_PLUGIN})
 
+# Include directories
 file(GLOB_RECURSE lib_dirs LIST_DIRECTORIES true ${CMAKE_CURRENT_LIST_DIR}/Lib/*)
-
 foreach (dir ${lib_dirs})
-    IF (IS_DIRECTORY ${dir})
+    if (IS_DIRECTORY ${dir})
         target_include_directories(${BaseTargetName} PRIVATE ${dir})
-    ELSE ()
-        CONTINUE()
-    ENDIF ()
-endforeach ()
+    endif()
+endforeach()
 
 file(GLOB_RECURSE source_dirs LIST_DIRECTORIES true ${CMAKE_CURRENT_LIST_DIR}/NeuVC/*)
-
 foreach (dir ${source_dirs})
-    IF (IS_DIRECTORY ${dir})
+    if (IS_DIRECTORY ${dir})
         target_include_directories(${BaseTargetName} PRIVATE ${dir})
-    ELSE ()
-        CONTINUE()
-    ENDIF ()
-endforeach ()
+    endif()
+endforeach()
 
-#Binary data
-file(GLOB RESOURCES_FILES ${CMAKE_CURRENT_LIST_DIR}/Lib/ModelData/*.json
-        ${CMAKE_CURRENT_LIST_DIR}/Lib/ModelData/*.ort
-        ${CMAKE_CURRENT_LIST_DIR}/NeuVC/Assets/*.ttf
-        ${CMAKE_CURRENT_LIST_DIR}/NeuVC/Assets/*.png
-        ${CMAKE_CURRENT_LIST_DIR}/NeuVC/Assets/*.svg)
-
+# Binary data
+file(GLOB RESOURCES_FILES
+    ${CMAKE_CURRENT_LIST_DIR}/Lib/ModelData/*.json
+    ${CMAKE_CURRENT_LIST_DIR}/Lib/ModelData/*.ort
+    ${CMAKE_CURRENT_LIST_DIR}/NeuVC/Assets/*.ttf
+    ${CMAKE_CURRENT_LIST_DIR}/NeuVC/Assets/*.png
+    ${CMAKE_CURRENT_LIST_DIR}/NeuVC/Assets/*.svg
+)
 juce_add_binary_data(bin_data SOURCES ${RESOURCES_FILES})
 
-# add_library(BasicPitchCNN STATIC ${CMAKE_CURRENT_LIST_DIR}/Lib/Model/BasicPitchCNN.cpp)
-# target_include_directories(BasicPitchCNN PRIVATE ${CMAKE_CURRENT_LIST_DIR}/ThirdParty/RTNeural)
-#if ((CMAKE_BUILD_TYPE STREQUAL "Debug") AND RTNeural_Release)
-#    if (MSVC)
-#        target_compile_options(BasicPitchCNN PUBLIC /O2) # or maybe /Ox
-#    else () # clang or gcc
-#        target_compile_options(BasicPitchCNN PUBLIC -O3) # or maybe -Ofast
-#    endif ()
-#endif ()
-#target_link_libraries(BasicPitchCNN PUBLIC RTNeural bin_data)
-
-# target_include_directories(${BaseTargetName} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/ONNXRuntime/${ONNXRUNTIME_DIRNAME}/include)
 target_include_directories(${BaseTargetName} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/ThirdParty/minimp3)
 
 target_compile_definitions(${BaseTargetName}
-        PUBLIC
-        JUCE_WEB_BROWSER=0
-        JUCE_USE_CURL=0
-        JUCE_VST3_CAN_REPLACE_VST2=0)
-
-# add_library(onnxruntime STATIC IMPORTED)
-
-
-
-# target_include_directories("${BaseTargetName}" PRIVATE ${CMAKE_CURRENT_LIST_DIR}/ThirdParty/onnxruntime/include)
-
-#find_package(PythonLibs REQUIRED)
-#include_directories(${PYTHON_INCLUDE_DIRS})
-
-target_link_libraries(${BaseTargetName}
-        PRIVATE
-        juce::juce_audio_utils
-        juce::juce_dsp
-        bin_data
-        PUBLIC
-        juce_recommended_config_flags
-        juce_recommended_lto_flags)
-# juce_recommended_warning_flags)
-
-if (BUILD_UNIT_TESTS)
-    add_subdirectory(Tests)
-endif ()
-
-target_compile_definitions(${BaseTargetName}
-        PRIVATE
-        SAVE_DOWNSAMPLED_AUDIO=0
-        USE_TEST_NOTE_FRAME_TO_TIME=0
+    PUBLIC
+    JUCE_WEB_BROWSER=0
+    JUCE_USE_CURL=0
+    JUCE_VST3_CAN_REPLACE_VST2=0
 )
 
-if (WIN32)
-    target_compile_definitions(${BaseTargetName} PUBLIC JUCE_ASIO=1)
-    target_include_directories(${BaseTargetName} PRIVATE ThirdParty/ASIO/common)
-endif ()
+target_link_libraries(${BaseTargetName}
+    PRIVATE
+    juce::juce_audio_utils
+    juce::juce_dsp
+    bin_data
+    PUBLIC
+    juce_recommended_config_flags
+    juce_recommended_lto_flags
+    ${TORCH_LIBRARIES}
+)
 
-# # # # # # # # 
-
+# Add executable for test_rvc
 add_executable(test_rvc NeuVC/Source/RVC/rvc.cpp)
 
-target_link_libraries(test_rvc "${TORCH_LIBRARIES}")
+# Include Torch directories
+target_include_directories(test_rvc PRIVATE ${TORCH_INCLUDE_DIRS})
 
-# Include directories
-include_directories(${TORCH_INCLUDE_DIRS})
+# Link Torch libraries
+target_link_libraries(test_rvc PRIVATE ${TORCH_LIBRARIES})
 
-# Set C++ flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
-
+# Set C++ standard for test_rvc
 set_property(TARGET test_rvc PROPERTY CXX_STANDARD 17)
 
-
-# The following code block is suggested to be used on Windows.
-# According to https://github.com/pytorch/pytorch/issues/25457,
-# the DLLs need to be copied to avoid memory errors.
+# Copy Torch DLLs on Windows
 if (MSVC)
-  file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
-  add_custom_command(TARGET test_rvc
-                     POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                     ${TORCH_DLLS}
-                     $<TARGET_FILE_DIR:test_rvc>)
-endif (MSVC)
+    file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
+    add_custom_command(TARGET test_rvc
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${TORCH_DLLS}
+        $<TARGET_FILE_DIR:test_rvc>
+    )
+endif()
+
+# Set runtime paths for development
+set(CMAKE_BUILD_RPATH "${CMAKE_SOURCE_DIR}/path/to/your/libs")
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+
+# Use the rpath settings in your target properties
+set_target_properties(${BaseTargetName} PROPERTIES
+    INSTALL_RPATH_USE_LINK_PATH TRUE
+    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib"
+)

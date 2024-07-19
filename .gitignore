@@ -2,3 +2,4 @@ ThirdParty/JUCE
 build
 .vscode/
 NeuVC/Assets/traced/
+libtorch

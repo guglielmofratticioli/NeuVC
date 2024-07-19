@@ -15,10 +15,10 @@ sid{0}, f0upKey{0}, tg_sr{20000}
     try
     {        
         //hubert_model = torch::jit::load("../../assets/hubert_traced.pt");
-        hubert_model = torch::jit::load("../../NeuVC/Assets/traced/hubert_traced.pt");
+        hubert_model = torch::jit::load("/Users/guglielmofratticioli/Library/NeuVC/Assets/traced/hubert_traced.pt");
         hubert_model.to(device);
         //rmvpe_model = torch::jit::load("../../assets/rmvpe_traced.pt");
-        rmvpe_model = torch::jit::load("../../NeuVC/Assets/traced/rmvpe_traced.pt");
+        rmvpe_model = torch::jit::load("/Users/guglielmofratticioli/Library/NeuVC/Assets/traced/rmvpe_traced.pt");
         rmvpe_model.to(device);
     }
     catch(const std::exception& e)
@@ -26,7 +26,7 @@ sid{0}, f0upKey{0}, tg_sr{20000}
         std::cerr << e.what() << '\n';
     }
 
-    load_net_g("../../NeuVC/Assets/traced/rvc_trained/ariana_grande.pt");
+    load_net_g("/Users/guglielmofratticioli/Library/NeuVC/Assets/traced/rvc_trained/ariana_grande.pt");
     //load_net_g("../../assets/rvc_trained/ariana_grande.pt");
 
 }
@@ -329,6 +329,7 @@ std::vector<float> RVC::voiceConversion(const std::vector<float> &buffer_audio)
 
 }
 
+/*
 int main(int argc, char* argv[]){
 
     // IMPORTANT ! -------------------------------------------------------------
@@ -364,3 +365,4 @@ int main(int argc, char* argv[]){
     
     return 0;
 }
+*/
