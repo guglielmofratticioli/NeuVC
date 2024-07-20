@@ -212,8 +212,8 @@ void NeuVCAudioProcessor::_runModel()
         
         juce::Logger::writeToLog("File Saved");
         
-        
-        setStateToPopulated();
+        getSourceAudioManager()->updateSourceAudio();
+        mState.store(PopulatedAudioAndMidiRegions);
     }
 }
 
