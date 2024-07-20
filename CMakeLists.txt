@@ -6,8 +6,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 set(CMAKE_CXX_STANDARD 17)
 enable_language(CXX)
 
-# set(CMAKE_PREFIX_PATH "C:/Program\ Files/libtorch2.0.0cpu-debug/libtorch") # location of libtorch
-set(Torch_DIR "/Users/guglielmofratticioli/Documents/Lib/libtorch/share/cmake/Torch")
+#set(CMAKE_PREFIX_PATH "C:/Program\ Files/libtorch2.0.0cpu-debug/libtorch") # location of libtorch
+set(Torch_DIR "C:/Program\ Files/libtorch2.0.0cpu-debug/libtorch/share/cmake/Torch")
+#set(Torch_DIR "/Users/guglielmofratticioli/Documents/Lib/libtorch/share/cmake/Torch")
 find_package(Torch REQUIRED)
 
 #Compile commands, useful for some IDEs like VS-Code
