@@ -192,13 +192,26 @@ void NeuVCAudioProcessor::_runModel()
         auto file = getSourceAudioManager()->getRecordedFile();
         std::vector<float> audio = loadAudioFile(file);
         
-        audio = normalizAudio(audio);
-        audio = resampleAudio(audio, 48000, 16000);
+        std::vector<float> normalized_audio;
+        normalized_audio = normalizAudio(audio);
+       
+        std::vector<float> resampled_audio;
+        resampled_audio = resampleAudio(normalized_audio, 48000, 16000);
         
-        audio = rvc.voiceConversion(audio);
+        recordedAudio = resampled_audio;
+        convertedAudio = rvc.voiceConversion(resampled_audio);
+        
         juce::Logger::writeToLog("Audio Converted");
-        saveAudioToFile(audio,  16000, 2, file);
+        
+        juce::File directory = file.getParentDirectory();
+        juce::File converted_file = directory.getChildFile("audio_converted.wav");
+        
+        saveAudioToFile(convertedAudio,  16000, 1, converted_file);
+        
+        converted_file.copyFileTo(file);
+        
         juce::Logger::writeToLog("File Saved");
+        
         
         setStateToPopulated();
     }
@@ -207,34 +220,41 @@ void NeuVCAudioProcessor::_runModel()
 // TODO: This function is faiing
 void NeuVCAudioProcessor::saveAudioToFile(const std::vector<float>& audioData, int sampleRate, int numChannels, const juce::File& file)
 {
-    // Create a JUCE audio format manager and add WAV format to it
-    juce::AudioFormatManager formatManager;
-    formatManager.registerBasicFormats();
+    // Number of channels and length of audio data
+       const int numSamples = static_cast<int>(audioData.size());
+       
+       // Create an AudioBuffer and copy the data into it
+       juce::AudioBuffer<float> buffer(numChannels, numSamples);
+       buffer.copyFrom(0, 0, audioData.data(), numSamples);
 
-    // Open a file output stream for the target file
-    std::unique_ptr<juce::FileOutputStream> outputStream(file.createOutputStream());
-    if (outputStream == nullptr) {
-        juce::Logger::writeToLog("Failed to open file for writing.");
-        return;
-    }
+       // Prepare an output stream to the file
+       std::unique_ptr<juce::FileOutputStream> fileStream(file.createOutputStream());
 
-    // Create a WAV format writer
-    std::unique_ptr<juce::AudioFormatWriter> writer(formatManager.findFormatForFileExtension(file.getFileExtension())->createWriterFor(outputStream.get(), sampleRate, numChannels, 16, {}, 0));
-    if (writer == nullptr) {
-        juce::Logger::writeToLog("Failed to create audio format writer.");
-        return;
-    }
+       // Check if the file stream was created successfully
+       if (fileStream == nullptr || !fileStream->openedOk())
+       {
+           DBG("Failed to create output stream for file: " + file.getFullPathName());
+           return;
+       }
 
-    // Write audio data to the file
-    juce::AudioBuffer<float> audioBuffer(numChannels, audioData.size() / numChannels);
-    for (int i = 0; i < numChannels; ++i) {
-        auto* channelData = audioBuffer.getWritePointer(i);
-        for (size_t j = 0; j < audioData.size() / numChannels; ++j) {
-            channelData[j] = audioData[j * numChannels + i];
-        }
-    }
+       // Create a WavAudioFormat object to handle writing to the file
+       juce::WavAudioFormat wavFormat;
 
-    writer->writeFromAudioSampleBuffer(audioBuffer, 0, audioBuffer.getNumSamples());
+       // Create an output stream to write the WAV file
+       std::unique_ptr<juce::AudioFormatWriter> writer(wavFormat.createWriterFor(fileStream.get(), sampleRate, numChannels, 16, {}, 0));
+
+       // Check if the writer was created successfully
+       if (writer == nullptr)
+       {
+           DBG("Failed to create WAV writer for file: " + file.getFullPathName());
+           return;
+       }
+
+       // Write the audio data to the file
+       writer->writeFromAudioSampleBuffer(buffer, 0, numSamples);
+
+       // Manually release the FileOutputStream to ensure it's properly closed after writing
+       fileStream.release();
 }
 
 
