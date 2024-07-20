@@ -14,11 +14,11 @@ sid{0}, f0upKey{0}, tg_sr{20000}
 {
     try
     {        
-        hubert_model = torch::jit::load("../../NeuVc/assets/hubert_traced.pt");
-        //hubert_model = torch::jit::load("/Users/guglielmofratticioli/Library/NeuVC/Assets/traced/hubert_traced.pt");
+        //hubert_model = torch::jit::load("../../../../NeuVC/Assets/traced/hubert_traced.pt");
+        hubert_model = torch::jit::load("/Users/guglielmofratticioli/Library/NeuVC/Assets/traced/hubert_traced.pt");
         hubert_model.to(device);
-        rmvpe_model = torch::jit::load("../../NeuVc/assets/rmvpe_traced.pt");
-        //rmvpe_model = torch::jit::load("/Users/guglielmofratticioli/Library/NeuVC/Assets/traced/rmvpe_traced.pt");
+        //rmvpe_model = torch::jit::load("../../../../NeuVC/Assets/traced/rmvpe_traced.pt");
+        rmvpe_model = torch::jit::load("/Users/guglielmofratticioli/Library/NeuVC/Assets/traced/rmvpe_traced.pt");
         rmvpe_model.to(device);
     }
     catch(const std::exception& e)
@@ -26,8 +26,8 @@ sid{0}, f0upKey{0}, tg_sr{20000}
         std::cerr << e.what() << '\n';
     }
 
-    //load_net_g("/Users/guglielmofratticioli/Library/NeuVC/Assets/traced/rvc_trained/ariana_grande.pt");
-    load_net_g("../../NeuVc/assets/rvc_trained/ariana_grande.pt");
+    load_net_g("/Users/guglielmofratticioli/Library/NeuVC/Assets/traced/rvc_trained/ariana_grande.pt");
+    //load_net_g("../../../../NeuVC/Assets/traced/rvc_trained/ariana_grande.pt");
 
 }
 
@@ -134,41 +134,6 @@ torch::Tensor RVC::get_vc(torch::Tensor &audio, torch::Tensor &pitch, torch::Ten
     }
     in_synth.push_back(sid_tensor.to(torch::kI64));
     
-
-
-
-    // hubert input test ------------------------------------------------------------------------
-    // torch::jit::script::Module inputs;
-    //inputs = torch::jit::load("..\\..\\hb_inputs.pt");
-    
-    // source = inputs.attr("source").toTensor();
-    // mask = inputs.attr("padding_mask").toTensor();
-    // layer = inputs.attr("output_layer").toTensor();
-    //-------------------------------------------------------------------------------------------
-    
-
-
-
-    // synth input test -------------------------------------------------------------------------
-    // torch::jit::script::Module inputs;
-    // inputs = torch::jit::load("../../assets/inputs/synth_inputs.pt");
-
-    // phone = inputs.attr("phone").toTensor().to(device);
-    // phone_lengths = inputs.attr("phone_lengths").toTensor().to(device);
-    // pitch = inputs.attr("pitch").toTensor().to(device);
-    // nsff0 = inputs.attr("nsff0").toTensor().to(device);
-    // sid = inputs.attr("sid").toTensor().to(device);
-
-    // in.push_back(phone);
-    // in.push_back(phone_lengths);
-    // in.push_back(pitch);
-    // in.push_back(nsff0);
-    // in.push_back(sid);
-    //--------------------------------------------------------------------------------------------
-    // Execute the model and turn its output into a tensor.
-    
-
-    
     {
         torch::NoGradGuard no_grad;
         auto output = net_g.forward(in_synth).toTuple();
@@ -247,63 +212,63 @@ torch::Tensor RVC::voiceConversion(torch::Tensor &buffer_audio)
                 int opt_t = x - x_query + torch::nonzero(query)[0][1].item<int>();
                 opt_ts.push_back(opt_t);
             }
-            audio_padded = F::pad(buffer_audio, F::PadFuncOptions({x_pad, x_pad}).mode(torch::kReflect));
-            p_len = audio_padded.size(1) / window;
-            if (if_f0)
-            {
-                pitch_pitchf = get_f0(audio_padded);
-                pitch = pitch_pitchf[0].slice(0, NULL, p_len).unsqueeze(0);
-                pitchf = pitch_pitchf[1].slice(0, NULL, p_len).unsqueeze(0);
-            }
+        }
+        audio_padded = F::pad(buffer_audio, F::PadFuncOptions({x_pad, x_pad}).mode(torch::kReflect));
+        p_len = audio_padded.size(1) / window;
+        if (if_f0)
+        {
+            pitch_pitchf = get_f0(audio_padded);
+            pitch = pitch_pitchf[0].slice(0, NULL, p_len).unsqueeze(0);
+            pitchf = pitch_pitchf[1].slice(0, NULL, p_len).unsqueeze(0);
+        }
 
-            for (int i = 0; i < opt_ts.size(); i++)
-            {
-                int x = (opt_ts[i] / window) * window;
-                if (if_f0)
-                {
-                    torch::Tensor audio_sliced = audio_padded.slice(1, s, x + x_pad * 2 + window);
-                    torch::Tensor pitch_sliced = pitch.slice(1, s / window, (x + x_pad * 2) / window);
-                    torch::Tensor pitchf_sliced = pitchf.slice(1, s / window, (x + x_pad * 2) / window);
-                    torch::Tensor out_vc = get_vc(audio_sliced, pitch_sliced, pitchf_sliced);
-                    audio_opt.push_back(out_vc.slice(1, x_pad_tgt, -x_pad_tgt));
-                }
-                else
-                {
-                    torch::Tensor audio_sliced = audio_padded.slice(0, s, x + x_pad * 2 + window);
-                    torch::Tensor empty_tensor1 = torch::Tensor();
-                    torch::Tensor empty_tensor2 = torch::Tensor();
-                    torch::Tensor out_vc = get_vc(audio_sliced, empty_tensor1, empty_tensor2);
-                    //torch::Tensor out_vc = get_vc(audio_sliced, torch::Tensor(), torch::Tensor());
-                    audio_opt.push_back(out_vc.slice(1, x_pad_tgt, -x_pad_tgt));
-                }
-                s = x;
-            }
+        for (int i = 0; i < opt_ts.size(); i++)
+        {
+            int x = (opt_ts[i] / window) * window;
             if (if_f0)
             {
-                torch::Tensor pitch_sliced;
-                torch::Tensor pitchf_sliced;
-                torch::Tensor audio_sliced = audio_padded.slice(1, s, c10::nullopt);
-                if (s > 0)
-                    pitch_sliced = pitch.slice(1, s / window, c10::nullopt);
-                else 
-                    pitch_sliced = pitch;
-                if (s > 0) 
-                    pitchf_sliced = pitchf.slice(1, s / window, c10::nullopt);
-                else
-                    pitchf_sliced = pitchf;
+                torch::Tensor audio_sliced = audio_padded.slice(1, s, x + x_pad * 2 + window);
+                torch::Tensor pitch_sliced = pitch.slice(1, s / window, (x + x_pad * 2) / window);
+                torch::Tensor pitchf_sliced = pitchf.slice(1, s / window, (x + x_pad * 2) / window);
                 torch::Tensor out_vc = get_vc(audio_sliced, pitch_sliced, pitchf_sliced);
                 audio_opt.push_back(out_vc.slice(1, x_pad_tgt, -x_pad_tgt));
             }
             else
             {
-                torch::Tensor audio_sliced = audio_padded.slice(1, s, c10::nullopt);
+                torch::Tensor audio_sliced = audio_padded.slice(0, s, x + x_pad * 2 + window);
                 torch::Tensor empty_tensor1 = torch::Tensor();
                 torch::Tensor empty_tensor2 = torch::Tensor();
                 torch::Tensor out_vc = get_vc(audio_sliced, empty_tensor1, empty_tensor2);
+                //torch::Tensor out_vc = get_vc(audio_sliced, torch::Tensor(), torch::Tensor());
                 audio_opt.push_back(out_vc.slice(1, x_pad_tgt, -x_pad_tgt));
             }
-            audio_vc = torch::cat(audio_opt, 1);
+            s = x;
         }
+        if (if_f0)
+        {
+            torch::Tensor pitch_sliced;
+            torch::Tensor pitchf_sliced;
+            torch::Tensor audio_sliced = audio_padded.slice(1, s, c10::nullopt);
+            if (s > 0)
+                pitch_sliced = pitch.slice(1, s / window, c10::nullopt);
+            else 
+                pitch_sliced = pitch;
+            if (s > 0) 
+                pitchf_sliced = pitchf.slice(1, s / window, c10::nullopt);
+            else
+                pitchf_sliced = pitchf;
+            torch::Tensor out_vc = get_vc(audio_sliced, pitch_sliced, pitchf_sliced);
+            audio_opt.push_back(out_vc.slice(1, x_pad_tgt, -x_pad_tgt));
+        }
+        else
+        {
+            torch::Tensor audio_sliced = audio_padded.slice(1, s, c10::nullopt);
+            torch::Tensor empty_tensor1 = torch::Tensor();
+            torch::Tensor empty_tensor2 = torch::Tensor();
+            torch::Tensor out_vc = get_vc(audio_sliced, empty_tensor1, empty_tensor2);
+            audio_opt.push_back(out_vc.slice(1, x_pad_tgt, -x_pad_tgt));
+        }
+        audio_vc = torch::cat(audio_opt, 1);
 
     }
     catch (const std::exception& e)
@@ -337,25 +302,16 @@ int main(int argc, char* argv[]){
     
     RVC rvc;
 
-    // // initilize rand input    
-    // int n=56789;
-    // std::vector<float> audio(n);
-
-    // for (int i = 0; i < n; i++)
-    // {
-    //     audio[i] = float(rand() % 100) / 100;
-    //     //std::cout << audio[i] << ' ';
-    // }
-
     // load input from python brake point during inference
     try
-    {
+    {   
         torch::jit::script::Module inputContainer;
-        inputContainer = torch::jit::load("../../assets/inputs/input_audio.pt");
+        inputContainer = torch::jit::load("../../NeuVC/Assets/traced/inputs/input_audio.pt");
         torch::jit::IValue test = inputContainer.attr("audio");
         std::vector<double> audio_double = inputContainer.attr("audio").toDoubleVector();
         std::vector<float> audio(audio_double.begin(), audio_double.end());
-        rvc.voiceConversion(audio);
+        std::vector<float> output = rvc.voiceConversion(audio);
+        std::cout << output.size() << std::endl;
     }
     catch(const std::exception& e)
     {

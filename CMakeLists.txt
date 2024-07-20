@@ -19,6 +19,7 @@ if (UniversalBinary)
 endif()
 
 # Set the location of libtorch
+#set(Torch_DIR "C:/Program\ Files/libtorch-win-shared-with-deps-debug-2.3.1+cpu/libtorch/share/cmake/Torch")
 set(Torch_DIR "/Users/guglielmofratticioli/Documents/Lib/libtorch/share/cmake/Torch")
 find_package(Torch REQUIRED)
 
@@ -107,10 +108,10 @@ target_link_libraries(${BaseTargetName}
     juce::juce_audio_utils
     juce::juce_dsp
     bin_data
+    ${TORCH_LIBRARIES}
     PUBLIC
     juce_recommended_config_flags
     juce_recommended_lto_flags
-    ${TORCH_LIBRARIES}
 )
 
 # Add executable for test_rvc
@@ -128,6 +129,12 @@ set_property(TARGET test_rvc PROPERTY CXX_STANDARD 17)
 # Copy Torch DLLs on Windows
 if (MSVC)
     file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
+    add_custom_command(TARGET ${BaseTargetName}
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${TORCH_DLLS}
+        $<TARGET_FILE_DIR:${BaseTargetName}>
+    )
     add_custom_command(TARGET test_rvc
         POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
