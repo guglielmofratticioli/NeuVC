@@ -65,7 +65,7 @@ void AudioFileDrag::mouseDown(const MouseEvent& event)
     auto file = mProcessor->getSourceAudioManager()->getRecordedFile();
     
     String originalFileName = file.getFileNameWithoutExtension();
-        String originalFileExtension = file.getFileExtension();
+    String originalFileExtension = file.getFileExtension();
 
         // Generate a unique filename
         int index = 0;

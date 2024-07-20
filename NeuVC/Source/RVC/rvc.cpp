@@ -329,7 +329,6 @@ std::vector<float> RVC::voiceConversion(const std::vector<float> &buffer_audio)
 
 }
 
-
 int main(int argc, char* argv[]){
 
     // IMPORTANT ! -------------------------------------------------------------

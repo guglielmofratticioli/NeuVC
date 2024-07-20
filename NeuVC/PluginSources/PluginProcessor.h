@@ -111,6 +111,9 @@ private:
     std::atomic<int> mCurrentTimeSignatureNum = -1;
     std::atomic<int> mCurrentTimeSignatureDenom = -1;
     
+    std::vector<float> recordedAudio;
+    std::vector<float> convertedAudio;
+    
     juce::String mProcessMode = "python";
     juce::String mModelPath = "select RVC model file path ->";
     juce::String mRVCPath = "/Users/guglielmofratticioli/Documents/Lib/Retrieval-based-Voice-Conversion-WebUI/infer_cli.py";
