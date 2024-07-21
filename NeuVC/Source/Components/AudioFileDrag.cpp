@@ -32,48 +32,26 @@ void AudioFileDrag::paint(Graphics& g)
 
 void AudioFileDrag::mouseDown(const MouseEvent& event)
 {
-    /*
-    if (!mTempDirectory.isDirectory()) {
-        auto result = mTempDirectory.createDirectory();
-        if (result.failed()) {
-            NativeMessageBox::showMessageBoxAsync(
-                juce::MessageBoxIconType::NoIcon, "Error", "Temporary directory for midi file failed.");
-        }
-    }
 
-    std::string filename = mProcessor->getSourceAudioManager()->getDroppedFilename();
-
-    if (filename.empty())
-        filename = "NNTranscription.mid";
-    else
-        filename += "_NNTranscription.mid";
-     */
-    /*
-    auto success_midi_file_creation = mMidiFileWriter.writeMidiFile(
-        mProcessor->getNoteEventVector(),
-        out_file,
-        mProcessor->getPlayheadInfoOnRecordStart(),
-        mProcessor->getMidiFileTempo(),
-        static_cast<PitchBendModes>(mProcessor->getCustomParameters()->pitchBendMode.load()));
-     
-    if (!success_midi_file_creation) {
-        NativeMessageBox::showMessageBoxAsync(
-            juce::MessageBoxIconType::NoIcon, "Error", "Could not create the midi file.");
-    }
-    */
-    //StringArray out_files = {out_file.getFullPathName()};
     auto file = mProcessor->getSourceAudioManager()->getRecordedFile();
     
     String originalFileName = file.getFileNameWithoutExtension();
     String originalFileExtension = file.getFileExtension();
 
-        // Generate a unique filename
-        int index = 0;
-        File copiedFile;
-        do {
-            String newFileName = originalFileName + "_" + String(++index);
-            copiedFile = file.getParentDirectory().getChildFile(newFileName).withFileExtension(originalFileExtension);
-        } while (copiedFile.exists()); // Ensure the filename is unique
+    // Create the exports directory within the parent directory of the original file
+    File exportsDirectory = file.getParentDirectory().getChildFile("exports");
+    if (!exportsDirectory.exists()) {
+        exportsDirectory.createDirectory();
+    }
+
+    // Generate a unique filename in the exports directory
+    int index = 0;
+    File copiedFile;
+    do {
+        String newFileName = originalFileName + "_" + String(++index);
+        copiedFile = exportsDirectory.getChildFile(newFileName).withFileExtension(originalFileExtension);
+    } while (copiedFile.exists()); // Ensure the filename is unique
+
     file.copyFileTo(copiedFile);
     DragAndDropContainer::performExternalDragDropOfFiles(copiedFile.getFullPathName(), false, this);
 }

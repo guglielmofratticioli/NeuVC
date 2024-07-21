@@ -228,7 +228,7 @@ void NeuVCMainView::timerCallback()
 void NeuVCMainView::modelChoose()
 {
     mFileChooser = std::make_shared<juce::FileChooser>(
-        "Select Model File", juce::File {}, "*.pth;", true, false, this);
+        "Select Model File", juce::File {}, "*.pth;*.pt", true, false, this);
 
     mFileChooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
                               [this](const juce::FileChooser& fc) {

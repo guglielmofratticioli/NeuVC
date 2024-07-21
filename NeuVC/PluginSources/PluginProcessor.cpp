@@ -201,7 +201,7 @@ void NeuVCAudioProcessor::_runModel()
     else if (mProcessMode == "c++"){
         //TODO C++ Write Here libtorch processing
         auto file = getSourceAudioManager()->getRecordedFile();
-        std::vector<float> audio = loadAudioFile(file);
+        std::vector<float> audio = loadAudioFile(file, true);
         
         std::vector<float> normalized_audio;
         normalized_audio = normalizAudio(audio);
@@ -216,8 +216,10 @@ void NeuVCAudioProcessor::_runModel()
         
         juce::File directory = file.getParentDirectory();
         juce::File converted_file = directory.getChildFile("audio_converted.wav");
+        converted_file.deleteFile(); 
+        converted_file = directory.getChildFile("audio_converted.wav");
         
-        saveAudioToFile(convertedAudio,  16000, 1, converted_file);
+        saveAudioToFile(convertedAudio,  rvc.get_tg_sr(), 1, converted_file);
         
         converted_file.copyFileTo(file);
         
@@ -268,39 +270,6 @@ void NeuVCAudioProcessor::saveAudioToFile(const std::vector<float>& audioData, i
        fileStream.release();
 }
 
-
-/*
-void NeuVCAudioProcessor::updatePostProcessing()
-{
-
-    jassert(mState == PopulatedAudioAndMidiRegions);
-
-    if (mState == PopulatedAudioAndMidiRegions) {
-        mNoteOptions.setParameters(NoteUtils::RootNote(mParameters.keyRootNote.load()),
-                                   NoteUtils::ScaleType(mParameters.keyType.load()),
-                                   NoteUtils::SnapMode(mParameters.keySnapMode.load()),
-                                   mParameters.minMidiNote.load(),
-                                   mParameters.maxMidiNote.load());
-
-        auto post_processed_notes = mNoteOptions.process(mBasicPitch.getNoteEvents());
-
-        mRhythmOptions.setParameters(RhythmUtils::TimeDivisions(mParameters.rhythmTimeDivision.load()),
-                                     mParameters.rhythmQuantizationForce.load());
-
-        mPostProcessedNotes = mRhythmOptions.quantize(post_processed_notes);
-
-        Notes::dropOverlappingPitchBends(mPostProcessedNotes);
-        Notes::mergeOverlappingNotesWithSamePitch(mPostProcessedNotes);
-
-        // For the synth
-        auto single_events = SynthController::buildMidiEventsVector(mPostProcessedNotes);
-        mPlayer->getSynthController()->setNewMidiEventsVectorToUse(single_events);
-    }
-     
-}
- */
-
-
 std::string NeuVCAudioProcessor::getTempoStr() const
 {
     
@@ -335,6 +304,21 @@ void NeuVCAudioProcessor::setMidiFileTempo(double inMidiFileTempo)
 }
  
 
+void NeuVCAudioProcessor::setModelPath(juce::String path)
+{
+    juce::File file(path);
+    if (file.getFileExtension() == ".pt")
+    {
+        DBG("The file is a .pt file");
+        rvc.load_net_g(path.toStdString());
+        DBG("net_g LOADED");
+    }
+    else
+    {
+        DBG("The file is a .pth file");
+    }
+    mModelPath = path;
+};
 
 double NeuVCAudioProcessor::getMidiFileTempo() const
 {
@@ -362,7 +346,7 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 }
 
 
-std::vector<float> NeuVCAudioProcessor::loadAudioFile(const juce::File& file)
+std::vector<float> NeuVCAudioProcessor::loadAudioFile(const juce::File& file, bool readLeftChannelOnly = false)
 {
     juce::AudioFormatManager formatManager;
     formatManager.registerBasicFormats();
@@ -376,14 +360,26 @@ std::vector<float> NeuVCAudioProcessor::loadAudioFile(const juce::File& file)
     reader->read(&buffer, 0, static_cast<int>(reader->lengthInSamples), 0, true, true);
 
     std::vector<float> audioData;
-    for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
+
+    if (readLeftChannelOnly)
     {
-        audioData.insert(audioData.end(), buffer.getReadPointer(channel), buffer.getReadPointer(channel) + buffer.getNumSamples());
+        // Read only the left channel (channel 0)
+        if (buffer.getNumChannels() > 0)
+        {
+            audioData.insert(audioData.end(), buffer.getReadPointer(0), buffer.getReadPointer(0) + buffer.getNumSamples());
+        }
+    }
+    else
+    {
+        // Read all channels
+        for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
+        {
+            audioData.insert(audioData.end(), buffer.getReadPointer(channel), buffer.getReadPointer(channel) + buffer.getNumSamples());
+        }
     }
 
     return audioData;
 }
-
 std::vector<float> NeuVCAudioProcessor::normalizAudio(const std::vector<float>& audioData, float targetLevel )
 {
     // Find the maximum absolute value in the audio data
@@ -407,7 +403,6 @@ std::vector<float> NeuVCAudioProcessor::normalizAudio(const std::vector<float>& 
 
     return normalizedAudio;
 }
-
 std::vector<float> NeuVCAudioProcessor::resampleAudio(const std::vector<float>& input, double inputSampleRate, double outputSampleRate)
 {
     // Ensure the input sample rate and output sample rate are valid

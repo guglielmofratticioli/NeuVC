@@ -73,7 +73,8 @@ public:
     Player* getPlayer();
     
     juce::String getModelPath() const { return mModelPath; };
-    void setModelPath(juce::String path) { mModelPath = path; };
+    
+    void setModelPath(juce::String path);
     
     void toggleProcessMode(){
         if(mProcessMode == "python") 
@@ -90,8 +91,7 @@ private:
     
     std::atomic<State> mState = EmptyAudioAndMidiRegions;
     
-    
-    std::vector<float> loadAudioFile(const juce::File& file);
+    std::vector<float> loadAudioFile(const juce::File& file, bool readLeftChannelOnly);
     
     std::vector<float> normalizAudio(const std::vector<float>& audioData, float targetLevel = 1.0f);
     
