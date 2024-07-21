@@ -219,7 +219,9 @@ void NeuVCAudioProcessor::_runModel()
         converted_file.deleteFile(); 
         converted_file = directory.getChildFile("audio_converted.wav");
         
-        saveAudioToFile(convertedAudio,  rvc.get_tg_sr(), 1, converted_file);
+        int out_rate = round( convertedAudio.size() / (resampled_audio.size() / 16000 )  );
+        
+        saveAudioToFile(convertedAudio,  out_rate , 1, converted_file);
         
         converted_file.copyFileTo(file);
         

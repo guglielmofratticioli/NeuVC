@@ -14,19 +14,28 @@ sid{0}, f0upKey{0}, tg_sr{20000}
 {
     try
     {        
+        std::filesystem::path homeDir = std::filesystem::path(getenv("HOME"));
+
+        // Construct the path to Library/MyApp/libs
+        std::filesystem::path userLibraryPath = homeDir / "Library";
+
+        // Convert the path to a string
+        std::string userPath = userLibraryPath.string();
+
         //hubert_model = torch::jit::load("../../../../NeuVC/Assets/traced/hubert_traced.pt");
-        hubert_model = torch::jit::load("/Users/guglielmofratticioli/Library/NeuVC/Assets/traced/hubert_traced.pt");
+        hubert_model = torch::jit::load(userPath+"/NeuVC/Assets/traced/hubert_traced.pt");
         hubert_model.to(device);
         //rmvpe_model = torch::jit::load("../../../../NeuVC/Assets/traced/rmvpe_traced.pt");
-        rmvpe_model = torch::jit::load("/Users/guglielmofratticioli/Library/NeuVC/Assets/traced/rmvpe_traced.pt");
+        rmvpe_model = torch::jit::load(userPath+"/NeuVC/Assets/traced/rmvpe_traced.pt");
         rmvpe_model.to(device);
+        load_net_g(userPath+"/NeuVC/Assets/traced/rvc_trained/ariana_grande.pt");
     }
     catch(const std::exception& e)
     {
         std::cerr << e.what() << '\n';
     }
 
-    load_net_g("/Users/guglielmofratticioli/Library/NeuVC/Assets/traced/rvc_trained/ariana_grande.pt");
+    
     //load_net_g("../../../../NeuVC/Assets/traced/rvc_trained/ariana_grande.pt");
 }
 

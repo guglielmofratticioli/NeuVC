@@ -20,7 +20,7 @@ endif()
 
 # Set the location of libtorch
 #set(Torch_DIR "C:/Program\ Files/libtorch-win-shared-with-deps-debug-2.3.1+cpu/libtorch/share/cmake/Torch")
-set(Torch_DIR "/Users/guglielmofratticioli/Library/NeuVC/libs/libtorch/share/cmake/Torch")
+set(Torch_DIR "/Library/NeuVC/libs/libtorch/share/cmake/Torch")
 find_package(Torch REQUIRED)
 
 
