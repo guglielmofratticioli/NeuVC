@@ -24,6 +24,7 @@ public:
     void setDevice(const std::string &device);
     void load_net_g(const std::string &net_g_path);
     void transpose_f0(const std::int16_t &f0upKey);
+    std::int32_t get_tg_sr();
 
 private:
     at::Device device; 

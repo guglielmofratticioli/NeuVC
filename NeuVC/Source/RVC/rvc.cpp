@@ -28,7 +28,11 @@ sid{0}, f0upKey{0}, tg_sr{20000}
 
     load_net_g("/Users/guglielmofratticioli/Library/NeuVC/Assets/traced/rvc_trained/ariana_grande.pt");
     //load_net_g("../../../../NeuVC/Assets/traced/rvc_trained/ariana_grande.pt");
+}
 
+std::int32_t RVC::get_tg_sr()
+{
+    return tg_sr;
 }
 
 void RVC::load_net_g(const std::string &net_g_path)
@@ -293,7 +297,7 @@ std::vector<float> RVC::voiceConversion(const std::vector<float> &buffer_audio)
     return outputs;
 
 }
-
+/*
 int main(int argc, char* argv[]){
 
     // IMPORTANT ! -------------------------------------------------------------
@@ -320,4 +324,4 @@ int main(int argc, char* argv[]){
     
     return 0;
 }
-
+*/
