@@ -164,7 +164,15 @@ void NeuVCAudioProcessor::_runModel()
         //juce::String command = "cd /Users/guglielmofratticioli/Documents/Lib/Retrieval-based-Voice-Conversion-WebUI && ";
         // - - - - - - - - - - - -
         
-        command+="/Users/guglielmofratticioli/opt/miniconda3/bin/python ";
+        std::filesystem::path homeDir = std::filesystem::path(getenv("HOME"));
+
+        // Construct the path to Library/MyApp/libs
+        std::filesystem::path userLibraryPath = homeDir;
+
+        // Convert the path to a string
+        std::string userPath = userLibraryPath.string();
+        
+        command = command+userPath+"/opt/miniconda3/bin/python ";
         
         // -> MANUAL PATH
         //command+=mRVCPath;

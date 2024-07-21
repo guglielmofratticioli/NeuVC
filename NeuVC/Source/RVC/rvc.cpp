@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <memory>
 #include "rvc.h"
+
 #include <filesystem>
 #include <cmath>
 
@@ -12,6 +13,8 @@ RVC::RVC()
 : window{160}, sr{16000}, t_pad{1}, t_query{6}, t_center{38}, t_max{41}, device{torch::kCPU},
 sid{0}, f0upKey{0}, tg_sr{20000}
 {
+    
+    
     try
     {        
         std::filesystem::path homeDir = std::filesystem::path(getenv("HOME"));
@@ -302,7 +305,7 @@ std::vector<float> RVC::voiceConversion(const std::vector<float> &buffer_audio)
     torch::Tensor out_vc = voiceConversion(in_vc).squeeze();
     // copy output back out to a vector
     std::vector<float> outputs(out_vc.data_ptr<float>(), out_vc.data_ptr<float>() + out_vc.numel());
-
+    
     return outputs;
 
 }

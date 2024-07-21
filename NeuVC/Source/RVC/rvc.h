@@ -1,5 +1,6 @@
 #pragma once
 
+#include <dlfcn.h>
 
 #include <torch/torch.h>
 #include <torch/script.h>
