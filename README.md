@@ -26,6 +26,9 @@ you can launch the .XcodeProj and build it yourselg
 
 You can download the pre-built MacOS-Arm release on the releases page. 
 
+or follow the link 
+!(download Installer (MacOS M1)[https://drive.google.com/file/d/1yz6edbCEQbmGmAlfo_mVg-Xax-Bumakz/view?usp=drive_link]
+
 # Python setup 
 If you want to use the python mode to directly convert with .pth RVC models you should 
 - Install python setting up a conda/miniconda version 3.0+
