@@ -1,5 +1,10 @@
 # NeuVC
-Neural based vst plugin for VoiceConversion 
+Neural based vst plugin for VoiceConversion. 
+Supports RVC and RVC2 trained models in pytorch .pth (python) and .pt (c++ traced) formats. 
+
+# Video Presentation 
+-
+
 
 # build 
 $ make -G "Xcode" ./build
@@ -10,8 +15,14 @@ $ mkdir build
 $ cd build 
 $ cmake .. 
 ```
+# run 
+You can download the pre-built MacOS-Arm release on the releases page. 
 
-## important (Env setup) 
-
-you need to clone the RVC repository -> [https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI], with pretrained models downloaded, in NeuVC working directory: 
-- MacOS -> '' ..user_name/Library/NeuVC/ ''
+# Python setup 
+If you want to use the python mode to directly convert with .pth RVC models you should 
+- Install python setting up a conda/miniconda version 3.0+
+- Install using pip the requirements in requirements.txt 
+`conda activate base`
+`conda install pip¡
+move to cloned NeuVC directory and launch 
+`pip install -r requirements.txt`
