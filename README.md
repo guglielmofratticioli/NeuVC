@@ -6,16 +6,22 @@ Supports RVC and RVC2 trained models in pytorch .pth (python) and .pt (c++ trace
 -
 
 
-# build 
-$ make -G "Xcode" ./build
-# install 
+# build with XCode
+
 put JUCE folder on the Thirdparty folder, then run
 ```
 $ mkdir build 
-$ cd build 
-$ cmake .. 
+$ cd build
 ```
-# run 
+then create an Xcode project with 
+```
+$ make -G "Xcode" ./build
+```
+
+you can launch the .XcodeProj and build it yourselg
+
+# Install and run 
+
 You can download the pre-built MacOS-Arm release on the releases page. 
 
 # Python setup 
