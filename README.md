@@ -3,7 +3,9 @@ Neural based vst plugin for VoiceConversion.
 Supports RVC and RVC2 trained models in pytorch .pth (python) and .pt (c++ traced) formats. 
 
 # Video Presentation 
--
+
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/bhtOwvWZOy0/0.jpg)](https://www.youtube.com/watch?v=bhtOwvWZOy0)
+
 
 
 # build with XCode
